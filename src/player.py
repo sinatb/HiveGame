@@ -1,6 +1,9 @@
+from constants import *
+
+
 class Player:
     def __init__(self, num):
-        self.pieces = {'Q': 1, 'A': 3, 'G': 3, 'C': 2, 'S': 2}
+        self.pieces = {QUEEN: 1, ANT: 3, GRASSHOPPER: 3, COCKROACH: 2, SPIDER: 2}
         self.num = num
 
     def place_piece(self, piece_name, board, i, j):

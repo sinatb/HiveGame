@@ -3,6 +3,7 @@ import math
 
 from src.board import Board
 from src.player import Player
+from constants import *
 
 pygame.init()
 pygame.display.set_caption("Hive")
@@ -75,8 +76,8 @@ font = pygame.font.Font('../assets/8514fix.fon', 12)
 def main():
     running = True
     turn = 1
-    selected_char = "X"
-    moved_piece = "N"
+    selected_char = NO_PIECE
+    moved_piece = NO_PIECE
     debuger_text = "Debuger"
 
     draw_field(mb, debuger_text, screen)
@@ -92,12 +93,11 @@ def main():
                     if (turn % 2 == 0):
                         debuger_text = "You cant chose from player 1's pieces"
                     else:
-                        list_pieces = ["Q", "A", "C", "G", "S", "S"]
                         i = math.floor((y - 40) / 75)
                         j = math.floor((x - 600) / 80)
                         if (i == 0):
-                            debuger_text = "Player 1 has chosen " + list_pieces[j]
-                            selected_char = list_pieces[j]
+                            debuger_text = "Player 1 has chosen " + ALL_PIECES[j]
+                            selected_char = ALL_PIECES[j]
                         else:
                             debuger_text = "Chose valid Piece"
 
@@ -105,21 +105,20 @@ def main():
                     if (turn % 2 == 1):
                         debuger_text = "You cant chose from player 2's pieces"
                     else:
-                        list_pieces = ["Q", "A", "C", "G", "S", "S"]
                         i = math.floor((y - 400) / 75)
                         j = math.floor((x - 600) / 80)
                         if (i == 0):
-                            debuger_text = "Player 2 has chosen " + list_pieces[j]
-                            selected_char = list_pieces[j]
+                            debuger_text = "Player 2 has chosen " + ALL_PIECES[j]
+                            selected_char = ALL_PIECES[j]
                         else:
                             debuger_text = "Chose valid Piece"
 
                 elif ((x > 0 and x < 600) and (y > 0 and y < 500)):
                     i = math.floor(y / 46)
                     j = math.floor((x - 35 + (0 if (i % 2 == 0) else 25)) / 51)
-                    if (j >= 0 and j < 10 and mb.places[i][j].piece == "N" and (
-                            selected_char != "X" or moved_piece != "N")):
-                        if (selected_char == "X" and moved_piece != "N"):
+                    if (j >= 0 and j < 10 and mb.places[i][j].piece == NO_PIECE and (
+                            selected_char != NO_PIECE or moved_piece != NO_PIECE)):
+                        if (selected_char == NO_PIECE and moved_piece != NO_PIECE):
                             if (turn % 2 == 1):
                                 p1.add_piece(moved_piece)
                                 p1.place_piece(moved_piece, mb, i, j)
@@ -127,28 +126,28 @@ def main():
                                 p2.add_piece(moved_piece)
                                 p2.place_piece(moved_piece, mb, i, j)
                             debuger_text = "Placed"
-                            moved_piece = "N"
-                        elif (selected_char != "X" and moved_piece == "N"):
+                            moved_piece = NO_PIECE
+                        elif (selected_char != NO_PIECE and moved_piece == NO_PIECE):
                             if (turn % 2 == 1):
                                 debuger_text = "Placed" if p1.place_piece(selected_char, mb, i,
                                                                           j) else "There is no such piece left"
                             else:
                                 debuger_text = "Placed" if p2.place_piece(selected_char, mb, i,
                                                                           j) else "There is no such piece left"
-                            selected_char = "X"
+                            selected_char = NO_PIECE
                         turn += 1 if (debuger_text == "Placed") else 0
-                    elif (mb.places[i][j].piece != "N" and selected_char == "X" and moved_piece == "N"):
+                    elif (mb.places[i][j].piece != NO_PIECE and selected_char == NO_PIECE and moved_piece == NO_PIECE):
                         if (turn % 2 == mb.places[i][j].player_num % 2):
                             moved_piece = mb.places[i][j].piece
-                            mb.places[i][j].piece = "N"
+                            mb.places[i][j].piece = NO_PIECE
                             mb.places[i][j].player_num = -1
                             debuger_text = "Moving piece"
                         else:
                             debuger_text = "Chose your own piece"
                     else:
-                        if (mb.places[i][j].piece != "N"):
+                        if (mb.places[i][j].piece != NO_PIECE):
                             debuger_text = "The place has already been taken"
-                            selected_char = "X"
+                            selected_char = NO_PIECE
                         else:
                             debuger_text = "Please select a piece"
 
@@ -159,11 +158,10 @@ def main():
 
 def draw_deck(player, screen, location):
     ctr = 0
-    list_pieces = ["Q", "A", "C", "G", "S"]
     list_pieces_assets = [queenh, anth, cockroachh, grasshopperh, spiderh]
     for p in list_pieces_assets:
         screen.blit(p, (location[0] + ctr * 80, location[1]))
-        under = font.render(list_pieces[ctr] + " = " + str(player.pieces[list_pieces[ctr]]), True, (0, 0, 0))
+        under = font.render(ALL_PIECES[ctr] + " = " + str(player.pieces[ALL_PIECES[ctr]]), True, (0, 0, 0))
         screen.blit(under, (location[0] + ctr * 80 + 15, location[1] + 85))
         ctr += 1
 
@@ -177,26 +175,26 @@ def draw_field(board, debuger_text, screen):
         for j in range(0, 10):
             screen.blit(hexagon, (j * 51 + (0 if (i % 2 == 0) else -25) + 35, i * 46))
             if (board.places[i][j].player_num == 1):
-                if (board.places[i][j].piece == "Q"):
+                if (board.places[i][j].piece == QUEEN):
                     screen.blit(Q_1, (j * 51 + (0 if (i % 2 == 0) else -25) + 37, i * 46 + 15))
-                elif (board.places[i][j].piece == "A"):
+                elif (board.places[i][j].piece == ANT):
                     screen.blit(A_1, (j * 51 + (0 if (i % 2 == 0) else -25) + 44, i * 46 + 10))
-                elif (board.places[i][j].piece == "C"):
+                elif (board.places[i][j].piece == COCKROACH):
                     screen.blit(C_1, (j * 51 + (0 if (i % 2 == 0) else -25) + 43, i * 46 + 14))
-                elif (board.places[i][j].piece == "S"):
+                elif (board.places[i][j].piece == SPIDER):
                     screen.blit(S_1, (j * 51 + (0 if (i % 2 == 0) else -25) + 40, i * 46 + 13))
-                elif (board.places[i][j].piece == "G"):
+                elif (board.places[i][j].piece == GRASSHOPPER):
                     screen.blit(G_1, (j * 51 + (0 if (i % 2 == 0) else -25) + 38, i * 46 + 12))
             else:
-                if (board.places[i][j].piece == "Q"):
+                if (board.places[i][j].piece == QUEEN):
                     screen.blit(Q_2, (j * 51 + (0 if (i % 2 == 0) else -25) + 37, i * 46 + 15))
-                elif (board.places[i][j].piece == "A"):
+                elif (board.places[i][j].piece == ANT):
                     screen.blit(A_2, (j * 51 + (0 if (i % 2 == 0) else -25) + 44, i * 46 + 10))
-                elif (board.places[i][j].piece == "C"):
+                elif (board.places[i][j].piece == COCKROACH):
                     screen.blit(C_2, (j * 51 + (0 if (i % 2 == 0) else -25) + 43, i * 46 + 14))
-                elif (board.places[i][j].piece == "S"):
+                elif (board.places[i][j].piece == SPIDER):
                     screen.blit(S_2, (j * 51 + (0 if (i % 2 == 0) else -25) + 40, i * 46 + 13))
-                elif (board.places[i][j].piece == "G"):
+                elif (board.places[i][j].piece == GRASSHOPPER):
                     screen.blit(G_2, (j * 51 + (0 if (i % 2 == 0) else -25) + 38, i * 46 + 12))
 
     # field lines
