@@ -11,7 +11,6 @@ screen = pygame.display.set_mode((1024, 720));
 
 # board and the players
 mb = Board(10, 10)
-mb.draw()
 
 p1 = Player(1)
 p2 = Player(2)
@@ -70,17 +69,17 @@ G_2.set_colorkey((255, 255, 255))
 font = pygame.font.Font('../assets/8514fix.fon', 12)
 
 
-# In[44]:
-
-
 def main():
     running = True
     turn = 1
     selected_char = NO_PIECE
     moved_piece = NO_PIECE
-    debuger_text = "Debuger"
+    debugger_text = "Debugger"
 
-    draw_field(mb, debuger_text, screen)
+    def current_player():
+        return p1 if turn % 2 == 1 else p2
+
+    draw_field(mb, debugger_text, screen)
 
     # game loop
     while running:
@@ -89,69 +88,67 @@ def main():
                 running = False
             elif event.type == pygame.MOUSEBUTTONUP:
                 (x, y) = pygame.mouse.get_pos()
-                if ((x > 600 and x < 1024) and (y > 0 and y < 360)):
-                    if (turn % 2 == 0):
-                        debuger_text = "You cant chose from player 1's pieces"
+                if (600 < x < 1024) and (0 < y < 360):
+                    if turn % 2 == 0:
+                        debugger_text = "You cant chose from player 1's pieces"
                     else:
                         i = math.floor((y - 40) / 75)
                         j = math.floor((x - 600) / 80)
-                        if (i == 0):
-                            debuger_text = "Player 1 has chosen " + ALL_PIECES[j]
+                        if i == 0:
+                            debugger_text = "Player 1 has chosen " + ALL_PIECES[j]
                             selected_char = ALL_PIECES[j]
                         else:
-                            debuger_text = "Chose valid Piece"
+                            debugger_text = "Chose valid Piece"
 
-                elif ((x > 600 and x < 1024) and (y > 360 and y < 720)):
-                    if (turn % 2 == 1):
-                        debuger_text = "You cant chose from player 2's pieces"
+                elif (600 < x < 1024) and (360 < y < 720):
+                    if turn % 2 == 1:
+                        debugger_text = "You cant chose from player 2's pieces"
                     else:
                         i = math.floor((y - 400) / 75)
                         j = math.floor((x - 600) / 80)
-                        if (i == 0):
-                            debuger_text = "Player 2 has chosen " + ALL_PIECES[j]
+                        if i == 0:
+                            debugger_text = "Player 2 has chosen " + ALL_PIECES[j]
                             selected_char = ALL_PIECES[j]
                         else:
-                            debuger_text = "Chose valid Piece"
+                            debugger_text = "Chose valid Piece"
 
-                elif ((x > 0 and x < 600) and (y > 0 and y < 500)):
+                elif (0 < x < 600) and (0 < y < 500):
                     i = math.floor(y / 46)
                     j = math.floor((x - 35 + (0 if (i % 2 == 0) else 25)) / 51)
-                    if (j >= 0 and j < 10 and mb.places[i][j].piece == NO_PIECE and (
-                            selected_char != NO_PIECE or moved_piece != NO_PIECE)):
-                        if (selected_char == NO_PIECE and moved_piece != NO_PIECE):
-                            if (turn % 2 == 1):
-                                p1.add_piece(moved_piece)
-                                p1.place_piece(moved_piece, mb, i, j)
-                            else:
-                                p2.add_piece(moved_piece)
-                                p2.place_piece(moved_piece, mb, i, j)
-                            debuger_text = "Placed"
-                            moved_piece = NO_PIECE
-                        elif (selected_char != NO_PIECE and moved_piece == NO_PIECE):
-                            if (turn % 2 == 1):
-                                debuger_text = "Placed" if p1.place_piece(selected_char, mb, i,
-                                                                          j) else "There is no such piece left"
-                            else:
-                                debuger_text = "Placed" if p2.place_piece(selected_char, mb, i,
-                                                                          j) else "There is no such piece left"
-                            selected_char = NO_PIECE
-                        turn += 1 if (debuger_text == "Placed") else 0
-                    elif (mb.places[i][j].piece != NO_PIECE and selected_char == NO_PIECE and moved_piece == NO_PIECE):
-                        if (turn % 2 == mb.places[i][j].player_num % 2):
-                            moved_piece = mb.places[i][j].piece
-                            mb.places[i][j].piece = NO_PIECE
-                            mb.places[i][j].player_num = -1
-                            debuger_text = "Moving piece"
-                        else:
-                            debuger_text = "Chose your own piece"
-                    else:
-                        if (mb.places[i][j].piece != NO_PIECE):
-                            debuger_text = "The place has already been taken"
-                            selected_char = NO_PIECE
-                        else:
-                            debuger_text = "Please select a piece"
+                    if (0 <= j < 10 and mb.places[i][j].isEmpty() and
+                            (selected_char != NO_PIECE or moved_piece != NO_PIECE)):
 
-                draw_field(mb, debuger_text, screen)
+                        if selected_char == NO_PIECE and moved_piece != NO_PIECE:
+
+                            mb.places[i][j].top_piece = current_player().get_free_piece(moved_piece)
+                            debugger_text = "Placed"
+                            moved_piece = NO_PIECE
+
+                        elif selected_char != NO_PIECE and moved_piece == NO_PIECE:
+                            if current_player().has_free_piece(selected_char):
+                                mb.places[i][j].top_piece = current_player().get_free_piece(selected_char)
+                                debugger_text = 'Placed'
+                            else:
+                                debugger_text = 'There is no such piece left'
+
+                            selected_char = NO_PIECE
+
+                        turn += 1 if (debugger_text == "Placed") else 0
+                    elif mb.places[i][j].isNotEmpty() and selected_char == NO_PIECE and moved_piece == NO_PIECE:
+                        if turn % 2 == mb.places[i][j].top_piece.player % 2:
+                            moved_piece = mb.places[i][j].top_piece.type
+                            mb.places[i][j].pop_top_piece()
+                            debugger_text = "Moving piece"
+                        else:
+                            debugger_text = "Chose your own piece"
+                    else:
+                        if mb.places[i][j].isNotEmpty():
+                            debugger_text = "The place has already been taken"
+                            selected_char = NO_PIECE
+                        else:
+                            debugger_text = "Please select a piece"
+
+                draw_field(mb, debugger_text, screen)
 
     pygame.quit()
 
@@ -161,12 +158,12 @@ def draw_deck(player, screen, location):
     list_pieces_assets = [queenh, anth, cockroachh, grasshopperh, spiderh]
     for p in list_pieces_assets:
         screen.blit(p, (location[0] + ctr * 80, location[1]))
-        under = font.render(ALL_PIECES[ctr] + " = " + str(player.pieces[ALL_PIECES[ctr]]), True, (0, 0, 0))
+        under = font.render(ALL_PIECES[ctr] + " = " + str(player.get_free_piece_count(ALL_PIECES[ctr])), True, (0, 0, 0))
         screen.blit(under, (location[0] + ctr * 80 + 15, location[1] + 85))
         ctr += 1
 
 
-def draw_field(board, debuger_text, screen):
+def draw_field(board, debugger_text, screen):
     # clear screen
     screen.fill((255, 255, 255))
 
@@ -174,28 +171,23 @@ def draw_field(board, debuger_text, screen):
     for i in range(0, 10):
         for j in range(0, 10):
             screen.blit(hexagon, (j * 51 + (0 if (i % 2 == 0) else -25) + 35, i * 46))
-            if (board.places[i][j].player_num == 1):
-                if (board.places[i][j].piece == QUEEN):
-                    screen.blit(Q_1, (j * 51 + (0 if (i % 2 == 0) else -25) + 37, i * 46 + 15))
-                elif (board.places[i][j].piece == ANT):
-                    screen.blit(A_1, (j * 51 + (0 if (i % 2 == 0) else -25) + 44, i * 46 + 10))
-                elif (board.places[i][j].piece == COCKROACH):
-                    screen.blit(C_1, (j * 51 + (0 if (i % 2 == 0) else -25) + 43, i * 46 + 14))
-                elif (board.places[i][j].piece == SPIDER):
-                    screen.blit(S_1, (j * 51 + (0 if (i % 2 == 0) else -25) + 40, i * 46 + 13))
-                elif (board.places[i][j].piece == GRASSHOPPER):
-                    screen.blit(G_1, (j * 51 + (0 if (i % 2 == 0) else -25) + 38, i * 46 + 12))
-            else:
-                if (board.places[i][j].piece == QUEEN):
-                    screen.blit(Q_2, (j * 51 + (0 if (i % 2 == 0) else -25) + 37, i * 46 + 15))
-                elif (board.places[i][j].piece == ANT):
-                    screen.blit(A_2, (j * 51 + (0 if (i % 2 == 0) else -25) + 44, i * 46 + 10))
-                elif (board.places[i][j].piece == COCKROACH):
-                    screen.blit(C_2, (j * 51 + (0 if (i % 2 == 0) else -25) + 43, i * 46 + 14))
-                elif (board.places[i][j].piece == SPIDER):
-                    screen.blit(S_2, (j * 51 + (0 if (i % 2 == 0) else -25) + 40, i * 46 + 13))
-                elif (board.places[i][j].piece == GRASSHOPPER):
-                    screen.blit(G_2, (j * 51 + (0 if (i % 2 == 0) else -25) + 38, i * 46 + 12))
+            if board.places[i][j].isEmpty():
+                continue
+
+            is_for_p1 = board.places[i][j].top_piece.player == 1
+
+            q_pic, a_pic, c_pic, s_pic, g_pic = (Q_1, A_1, C_1, S_1, G_1) if is_for_p1 else (Q_2, A_2, C_2, S_2, G_2)
+
+            if board.places[i][j].top_piece.type == QUEEN:
+                screen.blit(q_pic, (j * 51 + (0 if (i % 2 == 0) else -25) + 37, i * 46 + 15))
+            elif board.places[i][j].top_piece.type == ANT:
+                screen.blit(a_pic, (j * 51 + (0 if (i % 2 == 0) else -25) + 44, i * 46 + 10))
+            elif board.places[i][j].top_piece.type == COCKROACH:
+                screen.blit(c_pic, (j * 51 + (0 if (i % 2 == 0) else -25) + 43, i * 46 + 14))
+            elif board.places[i][j].top_piece.type == SPIDER:
+                screen.blit(s_pic, (j * 51 + (0 if (i % 2 == 0) else -25) + 40, i * 46 + 13))
+            elif board.places[i][j].top_piece.type == GRASSHOPPER:
+                screen.blit(g_pic, (j * 51 + (0 if (i % 2 == 0) else -25) + 38, i * 46 + 12))
 
     # field lines
     pygame.draw.line(screen, (255, 0, 255), (0, 500), (600, 500))
@@ -203,8 +195,8 @@ def draw_field(board, debuger_text, screen):
     pygame.draw.line(screen, (255, 0, 255), (600, 360), (1024, 360))
 
     # texts
-    debuger = font.render(debuger_text, True, (0, 0, 255))
-    screen.blit(debuger, (10, 510))
+    debugger = font.render(debugger_text, True, (0, 0, 255))
+    screen.blit(debugger, (10, 510))
     player1text = font.render("Player 1", True, (0, 0, 255))
     screen.blit(player1text, (782, 10))
     player2text = font.render("Player 2", True, (255, 0, 0))
