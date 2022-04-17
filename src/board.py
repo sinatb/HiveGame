@@ -8,19 +8,39 @@ class Board:
         self.places = [[HexPlace((x, y)) for x in range(self.n)] for y in range(self.m)]
 
     def get_neighbors(self, hex_place):
-        i, j = hex_place.pos
-        if i % 2 == 0:
-            return [self.places[i - 1][j - 1],
-                    self.places[i - 1][j],
-                    self.places[i][j + 1],
-                    self.places[i + 1][j],
-                    self.places[i + 1][j - 1],
-                    self.places[i][j - 1]]
-        else:
-            return [self.places[i - 1][j],
-                    self.places[i - 1][j + 1],
-                    self.places[i][j + 1],
-                    self.places[i + 1][j + 1],
-                    self.places[i + 1][j],
-                    self.places[i][j - 1]]
+        return [self.pos_z_of(hex_place),
+                self.pos_y_of(hex_place),
+                self.pos_x_of(hex_place),
+                self.neg_z_of(hex_place),
+                self.neg_y_of(hex_place),
+                self.neg_x_of(hex_place)]
 
+    def pos_x_of(self, hex_place):
+        i, j = hex_place.pos
+        ii, jj = (i, j + 1)
+        return self.places[ii][jj]
+
+    def neg_x_of(self, hex_place):
+        i, j = hex_place.pos
+        ii, jj = (i, j - 1)
+        return self.places[ii][jj]
+
+    def pos_y_of(self, hex_place):
+        i, j = hex_place.pos
+        ii, jj = (i - 1, j) if i % 2 == 0 else (i - 1, j + 1)
+        return self.places[ii][jj]
+
+    def neg_y_of(self, hex_place):
+        i, j = hex_place.pos
+        ii, jj = (i + 1, j - 1) if i % 2 == 0 else (i + 1, j)
+        return self.places[ii][jj]
+
+    def pos_z_of(self, hex_place):
+        i, j = hex_place.pos
+        ii, jj = (i - 1, j - 1) if i % 2 == 0 else (i - 1, j)
+        return self.places[ii][jj]
+
+    def neg_z_of(self, hex_place):
+        i, j = hex_place.pos
+        ii, jj = (i + 1, j) if i % 2 == 0 else (i + 1, j + 1)
+        return self.places[ii][jj]
