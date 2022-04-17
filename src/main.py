@@ -41,29 +41,29 @@ Q_1 = pygame.image.load("../assets/Q_1.JPG")
 Q_2 = pygame.image.load("../assets/Q_2.JPG")
 
 # removing the white background from assets
-hexagon.set_colorkey((255, 255, 255))
-hexagon_used.set_colorkey((255, 255, 255))
+hexagon.set_colorkey(FULL_WHITE)
+hexagon_used.set_colorkey(FULL_WHITE)
 
-queenh.set_colorkey((255, 255, 255))
-spiderh.set_colorkey((255, 255, 255))
-cockroachh.set_colorkey((255, 255, 255))
-anth.set_colorkey((255, 255, 255))
-grasshopperh.set_colorkey((255, 255, 255))
+queenh.set_colorkey(FULL_WHITE)
+spiderh.set_colorkey(FULL_WHITE)
+cockroachh.set_colorkey(FULL_WHITE)
+anth.set_colorkey(FULL_WHITE)
+grasshopperh.set_colorkey(FULL_WHITE)
 
-A_1.set_colorkey((255, 255, 255))
-A_2.set_colorkey((255, 255, 255))
+A_1.set_colorkey(FULL_WHITE)
+A_2.set_colorkey(FULL_WHITE)
 
-Q_1.set_colorkey((255, 255, 255))
-Q_2.set_colorkey((255, 255, 255))
+Q_1.set_colorkey(FULL_WHITE)
+Q_2.set_colorkey(FULL_WHITE)
 
-C_1.set_colorkey((255, 255, 255))
-C_2.set_colorkey((255, 255, 255))
+C_1.set_colorkey(FULL_WHITE)
+C_2.set_colorkey(FULL_WHITE)
 
-S_1.set_colorkey((255, 255, 255))
-S_2.set_colorkey((255, 255, 255))
+S_1.set_colorkey(FULL_WHITE)
+S_2.set_colorkey(FULL_WHITE)
 
-G_1.set_colorkey((255, 255, 255))
-G_2.set_colorkey((255, 255, 255))
+G_1.set_colorkey(FULL_WHITE)
+G_2.set_colorkey(FULL_WHITE)
 
 # loading the font
 font = pygame.font.Font('../assets/8514fix.fon', 12)
@@ -79,15 +79,15 @@ def main():
     def current_player():
         return p1 if turn % 2 == 1 else p2
 
-    draw_field(mb, debugger_text, screen)
+    draw_field(mb, debugger_text, screen, turn)
 
     # game loop
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            elif event.type == pygame.MOUSEBUTTONUP:
-                (x, y) = pygame.mouse.get_pos()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                (x, y) = event.pos
                 if (600 < x < 1024) and (0 < y < 360):
                     if turn % 2 == 0:
                         debugger_text = "You cant chose from player 1's pieces"
@@ -120,7 +120,7 @@ def main():
 
                         if selected_char == NO_PIECE and moved_piece != NO_PIECE:
 
-                            mb.places[i][j].top_piece = current_player().get_free_piece(moved_piece)
+                            mb.places[i][j].top_piece = moved_piece
                             debugger_text = "Placed"
                             moved_piece = NO_PIECE
 
@@ -136,11 +136,10 @@ def main():
                         turn += 1 if (debugger_text == "Placed") else 0
                     elif mb.places[i][j].isNotEmpty() and selected_char == NO_PIECE and moved_piece == NO_PIECE:
                         if turn % 2 == mb.places[i][j].top_piece.player % 2:
-                            moved_piece = mb.places[i][j].top_piece.type
-                            mb.places[i][j].pop_top_piece()
+                            moved_piece = mb.places[i][j].pop_top_piece()
                             debugger_text = "Moving piece"
                         else:
-                            debugger_text = "Chose your own piece"
+                            debugger_text = "Choose your own piece"
                     else:
                         if mb.places[i][j].isNotEmpty():
                             debugger_text = "The place has already been taken"
@@ -148,7 +147,7 @@ def main():
                         else:
                             debugger_text = "Please select a piece"
 
-                draw_field(mb, debugger_text, screen)
+                draw_field(mb, debugger_text, screen, turn)
 
     pygame.quit()
 
@@ -163,9 +162,9 @@ def draw_deck(player, screen, location):
         ctr += 1
 
 
-def draw_field(board, debugger_text, screen):
+def draw_field(board, debugger_text, screen, turn):
     # clear screen
-    screen.fill((255, 255, 255))
+    screen.fill(WHITE)
 
     # hex field drawer
     for i in range(0, 10):
@@ -190,16 +189,18 @@ def draw_field(board, debugger_text, screen):
                 screen.blit(g_pic, (j * 51 + (0 if (i % 2 == 0) else -25) + 38, i * 46 + 12))
 
     # field lines
-    pygame.draw.line(screen, (255, 0, 255), (0, 500), (600, 500))
-    pygame.draw.line(screen, (255, 0, 255), (600, 0), (600, 720))
-    pygame.draw.line(screen, (255, 0, 255), (600, 360), (1024, 360))
+    pygame.draw.line(screen, BLACK, (0, 500), (600, 500))
+    pygame.draw.line(screen, BLACK, (600, 0), (600, 720))
+    pygame.draw.line(screen, BLACK, (600, 360), (1024, 360))
 
     # texts
-    debugger = font.render(debugger_text, True, (0, 0, 255))
+    debugger_color = RED if turn % 2 == 0 else BLUE
+
+    debugger = font.render(debugger_text, True, debugger_color)
     screen.blit(debugger, (10, 510))
-    player1text = font.render("Player 1", True, (0, 0, 255))
+    player1text = font.render("Player 1", True, BLUE)
     screen.blit(player1text, (782, 10))
-    player2text = font.render("Player 2", True, (255, 0, 0))
+    player2text = font.render("Player 2", True, RED)
     screen.blit(player2text, (782, 370))
 
     # player deck drawer
