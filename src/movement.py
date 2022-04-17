@@ -23,17 +23,11 @@ def is_connected(board):
 
 
 def queen_moves(board, hex_place):
-    if not is_movable(board, hex_place):
-        return []
-    
     empty_neighbors = board.get_empty_neighbors(hex_place)
     return list(filter(is_crawlable(board, hex_place), empty_neighbors))
 
 
 def ant_moves(board, hex_place, pop=False):
-    if not is_movable(board, hex_place):
-        return []
-
     piece = None
     if pop:
         piece = hex_place.pop_top_piece()
@@ -61,16 +55,15 @@ def ant_moves(board, hex_place, pop=False):
 
 
 def cockroach_moves(board, hex_place):
-    if not is_movable(board, hex_place):
-        return []
-
-    return list(filter(is_connected(board), board.get_neighbors(hex_place)))
+    result = []
+    crawlable = is_crawlable(board, hex_place)
+    for neighbor in board.get_neighbors(hex_place):
+        if neighbor.isNotEmpty() or crawlable(neighbor):
+            result.append(neighbor)
+    return result
 
 
 def grasshopper_moves(board, hex_place):
-    if not is_movable(board, hex_place):
-        return []
-
     directions = [
         lambda n: board.pos_x_of(n),
         lambda n: board.pos_y_of(n),
@@ -92,7 +85,30 @@ def grasshopper_moves(board, hex_place):
     return result
 
 
+def spider_moves(board, hex_place):
+    empty_neighbors = board.get_empty_neighbors(hex_place)
+    set1 = set(filter(is_crawlable(board, hex_place), empty_neighbors))
+
+    set2 = set()
+    for place in set1:
+        place_empty_neighbors = board.get_empty_neighbors(place)
+        set2.update(filter(lambda n: is_crawlable(board, place)(n) and n != hex_place and (n not in set1),
+                           place_empty_neighbors))
+
+    set3 = set()
+    for place in set2:
+        place_empty_neighbors = board.get_empty_neighbors(place)
+        set3.update(
+            filter(lambda n: is_crawlable(board, place)(n) and n != hex_place and (n not in set1) and (n not in set2),
+                   place_empty_neighbors))
+
+    return list(set3)
+
+
 def valid_moves_of(board, hex_place, piece_type):
+    if not is_movable(board, hex_place):
+        return []
+
     if piece_type == QUEEN:
         return queen_moves(board, hex_place)
     elif piece_type == ANT:
@@ -101,5 +117,7 @@ def valid_moves_of(board, hex_place, piece_type):
         return cockroach_moves(board, hex_place)
     elif piece_type == GRASSHOPPER:
         return grasshopper_moves(board, hex_place)
+    elif piece_type == SPIDER:
+        return spider_moves(board, hex_place)
     else:
         return []
