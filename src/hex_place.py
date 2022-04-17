@@ -8,6 +8,7 @@ class HexPlace:
         return self._pieces[-1]
 
     def _set_top_piece(self, piece):
+        piece.pos = self.pos
         self._pieces.append(piece)
 
     def pop_top_piece(self):
