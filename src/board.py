@@ -5,7 +5,7 @@ class Board:
     def __init__(self, n, m):
         self.n = n
         self.m = m
-        self.places = [[HexPlace((x, y)) for x in range(self.n)] for y in range(self.m)]
+        self.places = [[HexPlace((y, x)) for x in range(self.n)] for y in range(self.m)]
 
     def get_neighbors(self, hex_place):
         return [self.pos_z_of(hex_place),
@@ -31,20 +31,20 @@ class Board:
 
     def pos_y_of(self, hex_place):
         i, j = hex_place.pos
-        ii, jj = (i - 1, j) if i % 2 == 0 else (i - 1, j + 1)
+        ii, jj = (i - 1, j) if i % 2 == 1 else (i - 1, j + 1)
         return self.places[ii][jj]
 
     def neg_y_of(self, hex_place):
         i, j = hex_place.pos
-        ii, jj = (i + 1, j - 1) if i % 2 == 0 else (i + 1, j)
+        ii, jj = (i + 1, j - 1) if i % 2 == 1 else (i + 1, j)
         return self.places[ii][jj]
 
     def pos_z_of(self, hex_place):
         i, j = hex_place.pos
-        ii, jj = (i - 1, j - 1) if i % 2 == 0 else (i - 1, j)
+        ii, jj = (i - 1, j - 1) if i % 2 == 1 else (i - 1, j)
         return self.places[ii][jj]
 
     def neg_z_of(self, hex_place):
         i, j = hex_place.pos
-        ii, jj = (i + 1, j) if i % 2 == 0 else (i + 1, j + 1)
+        ii, jj = (i + 1, j) if i % 2 == 1 else (i + 1, j + 1)
         return self.places[ii][jj]
