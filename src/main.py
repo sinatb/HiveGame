@@ -78,8 +78,11 @@ def main():
     debugger_text = "Debugger"
     valid_moves = list()
 
+    def player1_turn():
+        return turn % 2 == 1
+
     def current_player():
-        return p1 if turn % 2 == 1 else p2
+        return p1 if player1_turn() else p2
 
     draw_field(mb, debugger_text, screen, turn, valid_moves)
 
@@ -91,8 +94,8 @@ def main():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 (x, y) = event.pos
                 if (600 < x < 1024) and (0 < y < 360):
-                    if turn % 2 == 0:
-                        debugger_text = "You cant chose from player 1's pieces"
+                    if not player1_turn():
+                        debugger_text = "You can't chose from player 1's pieces"
                     else:
                         i = math.floor((y - 40) / 75)
                         j = math.floor((x - 600) / 80)
@@ -103,8 +106,8 @@ def main():
                             debugger_text = "Chose valid Piece"
 
                 elif (600 < x < 1024) and (360 < y < 720):
-                    if turn % 2 == 1:
-                        debugger_text = "You cant chose from player 2's pieces"
+                    if player1_turn():
+                        debugger_text = "You can't chose from player 2's pieces"
                     else:
                         i = math.floor((y - 400) / 75)
                         j = math.floor((x - 600) / 80)
@@ -112,7 +115,7 @@ def main():
                             debugger_text = "Player 2 has chosen " + ALL_PIECES[j]
                             selected_char = ALL_PIECES[j]
                         else:
-                            debugger_text = "Chose valid Piece"
+                            debugger_text = "Choose valid Piece"
 
                 elif (0 < x < 600) and (0 < y < 500):
                     i = math.floor(y / 46)
@@ -172,8 +175,8 @@ def draw_field(board, debugger_text, screen, turn, valid_moves):
     screen.fill(WHITE)
 
     # hex field drawer
-    for i in range(0, 10):
-        for j in range(0, 10):
+    for i in range(board.m):
+        for j in range(board.n):
             hex_pic = hexagon_valid if board.places[i][j] in valid_moves else hexagon
             screen.blit(hex_pic, (j * 51 + (0 if (i % 2 == 0) else -25) + 35, i * 46))
             if board.places[i][j].isEmpty():
