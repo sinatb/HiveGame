@@ -15,15 +15,17 @@ def is_crawlable(board, hex_place):
 
 def queen_moves(board, hex_place):
     if not is_movable(board, hex_place):
-        return iter([])
+        return []
     
     empty_neighbors = board.get_empty_neighbors(hex_place)
-    return filter(is_crawlable(board, hex_place), empty_neighbors)
+    return list(filter(is_crawlable(board, hex_place), empty_neighbors))
 
 
 def ant_moves(board, hex_place):
     if not is_movable(board, hex_place):
-        return iter([])
+        return []
+
+    piece = hex_place.pop_top_piece()
 
     result_set = set()
     processed = set()
@@ -32,7 +34,9 @@ def ant_moves(board, hex_place):
 
     while not to_be_processed.empty():
         place = to_be_processed.get_nowait()
-        filtered = filter(is_crawlable(board, place), board.get_empty_neighbors(place))
+        filtered = list(
+            filter(lambda n: is_crawlable(board, place)(n) and n != hex_place, board.get_empty_neighbors(place))
+        )
         result_set.update(filtered)
         processed.add(place)
 
@@ -40,4 +44,5 @@ def ant_moves(board, hex_place):
             if not (f in processed):
                 to_be_processed.put_nowait(f)
 
-    return iter(result_set)
+    hex_place.top_piece = piece
+    return list(result_set)
