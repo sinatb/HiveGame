@@ -4,6 +4,7 @@ import math
 from src.board import Board
 from src.player import Player
 from constants import *
+import movement
 
 pygame.init()
 pygame.display.set_caption("Hive")
@@ -23,7 +24,7 @@ queenh = pygame.image.load("../assets/queen.JPG")
 grasshopperh = pygame.image.load("../assets/grasshopper.JPG")
 
 hexagon = pygame.image.load("../assets/hexagon.png")
-hexagon_used = pygame.image.load("../assets/hexagon_valid.png")
+hexagon_valid = pygame.image.load("../assets/hexagon_valid.png")
 
 A_1 = pygame.image.load("../assets/A_1.JPG")
 A_2 = pygame.image.load("../assets/A_2.JPG")
@@ -42,7 +43,7 @@ Q_2 = pygame.image.load("../assets/Q_2.JPG")
 
 # removing the white background from assets
 hexagon.set_colorkey(FULL_WHITE)
-hexagon_used.set_colorkey(FULL_WHITE)
+hexagon_valid.set_colorkey(FULL_WHITE)
 
 queenh.set_colorkey(FULL_WHITE)
 spiderh.set_colorkey(FULL_WHITE)
@@ -75,11 +76,12 @@ def main():
     selected_char = NO_PIECE
     moved_piece = NO_PIECE
     debugger_text = "Debugger"
+    valid_moves = list()
 
     def current_player():
         return p1 if turn % 2 == 1 else p2
 
-    draw_field(mb, debugger_text, screen, turn)
+    draw_field(mb, debugger_text, screen, turn, valid_moves)
 
     # game loop
     while running:
@@ -123,6 +125,7 @@ def main():
                             mb.places[i][j].top_piece = moved_piece
                             debugger_text = "Placed"
                             moved_piece = NO_PIECE
+                            valid_moves = list()
 
                         elif selected_char != NO_PIECE and moved_piece == NO_PIECE:
                             if current_player().has_free_piece(selected_char):
@@ -137,6 +140,7 @@ def main():
                     elif mb.places[i][j].isNotEmpty() and selected_char == NO_PIECE and moved_piece == NO_PIECE:
                         if turn % 2 == mb.places[i][j].top_piece.player % 2:
                             moved_piece = mb.places[i][j].pop_top_piece()
+                            valid_moves = movement.valid_moves_of(mb, mb.places[i][j], moved_piece.type)
                             debugger_text = "Moving piece"
                         else:
                             debugger_text = "Choose your own piece"
@@ -145,9 +149,10 @@ def main():
                             debugger_text = "The place has already been taken"
                             selected_char = NO_PIECE
                         else:
+                            print(i, j)
                             debugger_text = "Please select a piece"
 
-                draw_field(mb, debugger_text, screen, turn)
+                draw_field(mb, debugger_text, screen, turn, valid_moves)
 
     pygame.quit()
 
@@ -162,14 +167,15 @@ def draw_deck(player, screen, location):
         ctr += 1
 
 
-def draw_field(board, debugger_text, screen, turn):
+def draw_field(board, debugger_text, screen, turn, valid_moves):
     # clear screen
     screen.fill(WHITE)
 
     # hex field drawer
     for i in range(0, 10):
         for j in range(0, 10):
-            screen.blit(hexagon, (j * 51 + (0 if (i % 2 == 0) else -25) + 35, i * 46))
+            hex_pic = hexagon_valid if board.places[i][j] in valid_moves else hexagon
+            screen.blit(hex_pic, (j * 51 + (0 if (i % 2 == 0) else -25) + 35, i * 46))
             if board.places[i][j].isEmpty():
                 continue
 
