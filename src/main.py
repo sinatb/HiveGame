@@ -20,7 +20,7 @@ p2 = Player(2)
 
 # screen assets
 eye_active = pygame.image.load("../assets/eye_active.png")
-eye_deactive = pygame.image.load("../assets/eye_n.png")
+eye_notactive = pygame.image.load("../assets/eye_n.png")
 
 spiderh = pygame.image.load("../assets/spider.JPG")
 anth = pygame.image.load("../assets/ant.JPG")
@@ -51,7 +51,7 @@ hexagon.set_colorkey(FULL_WHITE)
 hexagon_valid.set_colorkey(FULL_WHITE)
 
 eye_active.set_colorkey(FULL_WHITE)
-eye_deactive.set_colorkey(FULL_WHITE)
+eye_notactive.set_colorkey(FULL_WHITE)
 
 queenh.set_colorkey(FULL_WHITE)
 spiderh.set_colorkey(FULL_WHITE)
@@ -86,7 +86,7 @@ def main():
     moved_piece = NO_PIECE
     debugger_text = "Debugger"
     valid_moves = list()
-    is_eye_active = False
+    inspector_mode = False
 
     def player1_turn():
         return turn % 2 == 1
@@ -110,7 +110,7 @@ def main():
         else:
             return DRAW
 
-    draw_field(mb, debugger_text, screen,is_eye_active ,turn, valid_moves)
+    draw_field(mb, debugger_text, screen, inspector_mode, turn, valid_moves)
 
     # game loop
     while running:
@@ -125,93 +125,105 @@ def main():
                 continue
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 (x, y) = event.pos
-                if (950 < x < SCREEN_WIDTH) and (0 < y < SCREEN_HEIGHT/2):
-                    if not player1_turn():
-                        debugger_text = "You can't chose from player 1's pieces"
-                    else:
-                        i = math.floor((y - 40) / 47)
-                        j = math.floor((x - 950) / 50)
-                        if i == 0:
-                            if turn == 7 and ALL_PIECES[j] != QUEEN and not p1.has_placed_queen():
-                                debugger_text = 'You have to place your queen at this turn'
-                            else:
-                                selected_char = ALL_PIECES[j]
-                                if turn == 1:
-                                    valid_moves = [P1_FIRST_PLACE]
-                                debugger_text = "Player 1 has chosen " + selected_char
+                if SCREEN_WIDTH - 100 < x < SCREEN_WIDTH and SCREEN_HEIGHT - 100 < y < SCREEN_HEIGHT:
+                    inspector_mode = not inspector_mode
+                if not inspector_mode:
+                    if (950 < x < SCREEN_WIDTH) and (0 < y < SCREEN_HEIGHT / 2):
+                        if not player1_turn():
+                            debugger_text = "You can't chose from player 1's pieces"
                         else:
-                            debugger_text = "Chose valid Piece"
-
-                elif (950 < x < SCREEN_WIDTH) and (SCREEN_HEIGHT/2 < y < SCREEN_HEIGHT):
-                    if player1_turn():
-                        debugger_text = "You can't chose from player 2's pieces"
-                    else:
-                        i = math.floor((y - 440) / 47)
-                        j = math.floor((x - 950) / 50)
-                        if i == 0:
-                            if turn == 8 and ALL_PIECES[j] != QUEEN and not p2.has_placed_queen():
-                                debugger_text = 'You have to place your queen at this turn'
+                            i = math.floor((y - 40) / 47)
+                            j = math.floor((x - 950) / 50)
+                            if i == 0:
+                                if turn == 7 and ALL_PIECES[j] != QUEEN and not p1.has_placed_queen():
+                                    debugger_text = 'You have to place your queen at this turn'
+                                else:
+                                    selected_char = ALL_PIECES[j]
+                                    if turn == 1:
+                                        valid_moves = [P1_FIRST_PLACE]
+                                    debugger_text = "Player 1 has chosen " + selected_char
                             else:
-                                selected_char = ALL_PIECES[j]
-                                if turn == 2:
-                                    valid_moves = [P2_FIRST_PLACE]
-                                debugger_text = "Player 2 has chosen " + selected_char
+                                debugger_text = "Chose valid Piece"
+
+                    elif (950 < x < SCREEN_WIDTH) and (SCREEN_HEIGHT / 2 < y < SCREEN_HEIGHT):
+                        if player1_turn():
+                            debugger_text = "You can't chose from player 2's pieces"
                         else:
-                            debugger_text = "Choose valid Piece"
-
-                elif (0 < x < 950) and (0 < y < 750):
-                    i = math.floor(y / 32)
-                    j = math.floor((x - 35 + (0 if (i % 2 == 0) else 20)) / 40)
-                    if (0 <= j < 22 and (mb.places[i][j].isEmpty() or (
-                            moved_piece != NO_PIECE and moved_piece.type == COCKROACH)) and
-                            (selected_char != NO_PIECE or moved_piece != NO_PIECE)):
-
-                        if selected_char == NO_PIECE and moved_piece != NO_PIECE:
-                            if mb.places[i][j] in valid_moves:
-                                mb.places[i][j].top_piece = moved_piece
-                                debugger_text = PLACED
-                                moved_piece = NO_PIECE
-                                valid_moves = list()
+                            i = math.floor((y - 440) / 47)
+                            j = math.floor((x - 950) / 50)
+                            if i == 0:
+                                if turn == 8 and ALL_PIECES[j] != QUEEN and not p2.has_placed_queen():
+                                    debugger_text = 'You have to place your queen at this turn'
+                                else:
+                                    selected_char = ALL_PIECES[j]
+                                    if turn == 2:
+                                        valid_moves = [P2_FIRST_PLACE]
+                                    debugger_text = "Player 2 has chosen " + selected_char
                             else:
-                                debugger_text = 'This move is illegal'
-                        elif selected_char != NO_PIECE and moved_piece == NO_PIECE:
-                            if not current_player().has_free_piece(selected_char):
-                                debugger_text = 'There is no such piece left'
-                                selected_char = NO_PIECE
-                            elif turn <= 2 and not mb.places[i][j] in valid_moves:
-                                debugger_text = 'Your first move has to be at the marked place'
-                            elif turn > 2 and not movement.can_accept_new_piece(mb, mb.places[i][j], current_player().num):
-                                debugger_text = 'A new piece cannot be placed here'
-                            else:
-                                mb.places[i][j].top_piece = current_player().get_free_piece(selected_char)
-                                debugger_text = PLACED
-                                selected_char = NO_PIECE
-                                if turn <= 2:
+                                debugger_text = "Choose valid Piece"
+
+                    elif (0 < x < 950) and (0 < y < 750):
+                        i = math.floor(y / 32)
+                        j = math.floor((x - 35 + (0 if (i % 2 == 0) else 20)) / 40)
+                        if (0 <= j < 22 and (mb.places[i][j].isEmpty() or (
+                                moved_piece != NO_PIECE and moved_piece.type == COCKROACH)) and
+                                (selected_char != NO_PIECE or moved_piece != NO_PIECE)):
+
+                            if selected_char == NO_PIECE and moved_piece != NO_PIECE:
+                                if mb.places[i][j] in valid_moves:
+                                    mb.places[i][j].top_piece = moved_piece
+                                    debugger_text = PLACED
+                                    moved_piece = NO_PIECE
                                     valid_moves = list()
+                                else:
+                                    debugger_text = 'This move is illegal'
+                            elif selected_char != NO_PIECE and moved_piece == NO_PIECE:
+                                if not current_player().has_free_piece(selected_char):
+                                    debugger_text = 'There is no such piece left'
+                                    selected_char = NO_PIECE
+                                elif turn <= 2 and not mb.places[i][j] in valid_moves:
+                                    debugger_text = 'Your first move has to be at the marked place'
+                                elif turn > 2 and not movement.can_accept_new_piece(mb, mb.places[i][j],
+                                                                                    current_player().num):
+                                    debugger_text = 'A new piece cannot be placed here'
+                                else:
+                                    mb.places[i][j].top_piece = current_player().get_free_piece(selected_char)
+                                    debugger_text = PLACED
+                                    selected_char = NO_PIECE
+                                    if turn <= 2:
+                                        valid_moves = list()
 
-                        turn += 1 if (debugger_text == PLACED) else 0
-                    elif mb.places[i][j].isNotEmpty() and selected_char == NO_PIECE and moved_piece == NO_PIECE:
-                        if not current_player().num == mb.places[i][j].top_piece.player:
-                            debugger_text = "Choose your own piece"
-                        elif not current_player().has_placed_queen():
-                            debugger_text = 'You cannot move any piece until queen is placed'
-                        else:
-                            place = mb.places[i][j]
-                            valid_moves = movement.valid_moves_of(mb, place, place.top_piece.type, should_pop=True)
-                            if len(valid_moves) <= 0:
-                                debugger_text = 'This piece has no legal moves'
+                            turn += 1 if (debugger_text == PLACED) else 0
+                        elif mb.places[i][j].isNotEmpty() and selected_char == NO_PIECE and moved_piece == NO_PIECE:
+                            if not current_player().num == mb.places[i][j].top_piece.player:
+                                debugger_text = "Choose your own piece"
+                            elif not current_player().has_placed_queen():
+                                debugger_text = 'You cannot move any piece until queen is placed'
                             else:
-                                moved_piece = place.pop_top_piece()
-                                debugger_text = "Moving piece"
-                    else:
-                        if mb.places[i][j].isNotEmpty():
-                            debugger_text = "The place has already been taken"
-                            selected_char = NO_PIECE
+                                place = mb.places[i][j]
+                                valid_moves = movement.valid_moves_of(mb, place, place.top_piece.type, should_pop=True)
+                                if len(valid_moves) <= 0:
+                                    debugger_text = 'This piece has no legal moves'
+                                else:
+                                    moved_piece = place.pop_top_piece()
+                                    debugger_text = "Moving piece"
                         else:
-                            print(i, j)
-                            debugger_text = "Please select a piece"
+                            if mb.places[i][j].isNotEmpty():
+                                debugger_text = "The place has already been taken"
+                                selected_char = NO_PIECE
+                            else:
+                                print(i, j)
+                                debugger_text = "Please select a piece"
+                else:
+                    if (0 < x < 950) and (0 < y < 750):
+                        i = math.floor(y / 32)
+                        j = math.floor((x - 35 + (0 if (i % 2 == 0) else 20)) / 40)
+                        if 0 <= j < 22 and mb.places[i][j].isNotEmpty():
+                            debugger_text = ""
+                            for p in mb.places[i][j]._pieces:
+                                debugger_text = debugger_text + p.type + " "
 
-                draw_field(mb, debugger_text, screen, is_eye_active, turn, valid_moves)
+                draw_field(mb, debugger_text, screen, inspector_mode, turn, valid_moves)
 
     pygame.quit()
 
@@ -226,7 +238,7 @@ def draw_deck(player, screen, location):
         ctr += 1
 
 
-def draw_field(board, debugger_text, screen,eye ,turn, valid_moves):
+def draw_field(board, debugger_text, screen, mode, turn, valid_moves):
     # clear screen
     screen.fill(WHITE)
 
@@ -273,8 +285,10 @@ def draw_field(board, debugger_text, screen,eye ,turn, valid_moves):
     draw_deck(p1, screen, (950, 40))
     draw_deck(p2, screen, (950, SCREEN_HEIGHT/2 + 40))
 
-    eye_image = eye_active if eye else eye_deactive
-    screen.blit(eye_image,(SCREEN_WIDTH-100 , SCREEN_HEIGHT-100))
+    # eye
+    eye = eye_notactive if not mode else eye_active
+    screen.blit(eye, (SCREEN_WIDTH - 100, SCREEN_HEIGHT - 100))
+
     # show
     pygame.display.flip()
 
