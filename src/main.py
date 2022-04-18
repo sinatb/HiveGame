@@ -12,6 +12,8 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT));
 
 # board and the players
 mb = Board(22, 22)
+P1_FIRST_PLACE = mb.places[11][10]
+P2_FIRST_PLACE = mb.neg_z_of(P1_FIRST_PLACE)
 
 p1 = Player(1)
 p2 = Player(2)
@@ -105,6 +107,8 @@ def main():
                                 debugger_text = 'You have to place your queen at this turn'
                             else:
                                 selected_char = ALL_PIECES[j]
+                                if turn == 1:
+                                    valid_moves = [P1_FIRST_PLACE]
                                 debugger_text = "Player 1 has chosen " + selected_char
                         else:
                             debugger_text = "Chose valid Piece"
@@ -120,6 +124,8 @@ def main():
                                 debugger_text = 'You have to place your queen at this turn'
                             else:
                                 selected_char = ALL_PIECES[j]
+                                if turn == 2:
+                                    valid_moves = [P2_FIRST_PLACE]
                                 debugger_text = "Player 2 has chosen " + selected_char
                         else:
                             debugger_text = "Choose valid Piece"
@@ -142,12 +148,16 @@ def main():
                             if not current_player().has_free_piece(selected_char):
                                 debugger_text = 'There is no such piece left'
                                 selected_char = NO_PIECE
+                            elif turn <= 2 and not mb.places[i][j] in valid_moves:
+                                debugger_text = 'Your first move has to be at the marked place'
                             elif turn > 2 and not movement.can_accept_new_piece(mb, mb.places[i][j], current_player().num):
                                 debugger_text = 'A new piece cannot be placed here'
                             else:
                                 mb.places[i][j].top_piece = current_player().get_free_piece(selected_char)
                                 debugger_text = PLACED
                                 selected_char = NO_PIECE
+                                if turn <= 2:
+                                    valid_moves = list()
 
                         turn += 1 if (debugger_text == PLACED) else 0
                     elif mb.places[i][j].isNotEmpty() and selected_char == NO_PIECE and moved_piece == NO_PIECE:
