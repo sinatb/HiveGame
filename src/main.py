@@ -125,27 +125,31 @@ def main():
                             (selected_char != NO_PIECE or moved_piece != NO_PIECE)):
 
                         if selected_char == NO_PIECE and moved_piece != NO_PIECE:
-
-                            mb.places[i][j].top_piece = moved_piece
-                            debugger_text = "Placed"
-                            moved_piece = NO_PIECE
-                            valid_moves = list()
-
+                            if mb.places[i][j] in valid_moves:
+                                mb.places[i][j].top_piece = moved_piece
+                                debugger_text = PLACED
+                                moved_piece = NO_PIECE
+                                valid_moves = list()
+                            else:
+                                debugger_text = 'This move is illegal'
                         elif selected_char != NO_PIECE and moved_piece == NO_PIECE:
                             if current_player().has_free_piece(selected_char):
                                 mb.places[i][j].top_piece = current_player().get_free_piece(selected_char)
-                                debugger_text = 'Placed'
+                                debugger_text = PLACED
                             else:
                                 debugger_text = 'There is no such piece left'
 
                             selected_char = NO_PIECE
 
-                        turn += 1 if (debugger_text == "Placed") else 0
+                        turn += 1 if (debugger_text == PLACED) else 0
                     elif mb.places[i][j].isNotEmpty() and selected_char == NO_PIECE and moved_piece == NO_PIECE:
                         if turn % 2 == mb.places[i][j].top_piece.player % 2:
-                            moved_piece = mb.places[i][j].pop_top_piece()
-                            valid_moves = movement.valid_moves_of(mb, mb.places[i][j], moved_piece.type)
-                            debugger_text = "Moving piece"
+                            valid_moves = movement.valid_moves_of(mb, mb.places[i][j], mb.places[i][j].top_piece.type)
+                            if len(valid_moves) <= 0:
+                                debugger_text = 'This piece has no legal moves'
+                            else:
+                                moved_piece = mb.places[i][j].pop_top_piece()
+                                debugger_text = "Moving piece"
                         else:
                             debugger_text = "Choose your own piece"
                     else:
