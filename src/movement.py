@@ -77,9 +77,11 @@ def grasshopper_moves(board, hex_place):
 
     for direction in directions:
         neighbor = direction(hex_place)
+        i = 0
         while neighbor is not None and neighbor.isNotEmpty():
             neighbor = direction(neighbor)
-        if neighbor is not None:
+            i += 1
+        if neighbor is not None and i > 0:
             result.append(neighbor)
 
     return result
