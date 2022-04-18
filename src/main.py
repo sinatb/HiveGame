@@ -22,6 +22,8 @@ p2 = Player(2)
 eye_active = pygame.image.load("../assets/eye_active.png")
 eye_notactive = pygame.image.load("../assets/eye_n.png")
 
+pass_turn = pygame.image.load("../assets/pass_turn_small.jpg")
+
 spiderh = pygame.image.load("../assets/spider.JPG")
 anth = pygame.image.load("../assets/ant.JPG")
 cockroachh = pygame.image.load("../assets/cockroach.JPG")
@@ -214,6 +216,12 @@ def main():
                             else:
                                 print(i, j)
                                 debugger_text = "Please select a piece"
+                    elif 810 < x < 940 and 760 < y < 785:
+                        if turn <= 8:
+                            debugger_text = 'Cannot change turn this early'
+                        else:
+                            turn += 1
+                            debugger_text = 'Turn changed'
                 else:
                     if (0 < x < 950) and (0 < y < 750):
                         i = math.floor(y / 32)
@@ -288,6 +296,9 @@ def draw_field(board, debugger_text, screen, mode, turn, valid_moves):
     # eye
     eye = eye_notactive if not mode else eye_active
     screen.blit(eye, (SCREEN_WIDTH - 100, SCREEN_HEIGHT - 100))
+
+    # pass turn
+    screen.blit(pass_turn, (810, 760))
 
     # show
     pygame.display.flip()
