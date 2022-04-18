@@ -164,3 +164,15 @@ def is_movable(board, hex_place):
             return False
 
     return True
+
+
+def can_accept_new_piece(board, hex_place, player_num):
+    if hex_place.isNotEmpty():
+        return False
+
+    self_count = 0
+    for neighbor in board.get_full_neighbors(hex_place):
+        if neighbor.top_piece.player != player_num:
+            return False
+        self_count += 1
+    return self_count > 0

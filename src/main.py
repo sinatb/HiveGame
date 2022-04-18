@@ -133,13 +133,15 @@ def main():
                             else:
                                 debugger_text = 'This move is illegal'
                         elif selected_char != NO_PIECE and moved_piece == NO_PIECE:
-                            if current_player().has_free_piece(selected_char):
+                            if not current_player().has_free_piece(selected_char):
+                                debugger_text = 'There is no such piece left'
+                                selected_char = NO_PIECE
+                            elif turn > 2 and not movement.can_accept_new_piece(mb, mb.places[i][j], current_player().num):
+                                debugger_text = 'A new piece cannot be placed here'
+                            else:
                                 mb.places[i][j].top_piece = current_player().get_free_piece(selected_char)
                                 debugger_text = PLACED
-                            else:
-                                debugger_text = 'There is no such piece left'
-
-                            selected_char = NO_PIECE
+                                selected_char = NO_PIECE
 
                         turn += 1 if (debugger_text == PLACED) else 0
                     elif mb.places[i][j].isNotEmpty() and selected_char == NO_PIECE and moved_piece == NO_PIECE:
