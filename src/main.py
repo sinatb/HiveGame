@@ -101,8 +101,11 @@ def main():
                         i = math.floor((y - 40) / 47)
                         j = math.floor((x - 950) / 50)
                         if i == 0:
-                            debugger_text = "Player 1 has chosen " + ALL_PIECES[j]
-                            selected_char = ALL_PIECES[j]
+                            if turn == 7 and ALL_PIECES[j] != QUEEN and not p1.has_placed_queen():
+                                debugger_text = 'You have to place your queen at this turn'
+                            else:
+                                selected_char = ALL_PIECES[j]
+                                debugger_text = "Player 1 has chosen " + selected_char
                         else:
                             debugger_text = "Chose valid Piece"
 
@@ -113,8 +116,11 @@ def main():
                         i = math.floor((y - 440) / 47)
                         j = math.floor((x - 950) / 50)
                         if i == 0:
-                            debugger_text = "Player 2 has chosen " + ALL_PIECES[j]
-                            selected_char = ALL_PIECES[j]
+                            if turn == 8 and ALL_PIECES[j] != QUEEN and not p2.has_placed_queen():
+                                debugger_text = 'You have to place your queen at this turn'
+                            else:
+                                selected_char = ALL_PIECES[j]
+                                debugger_text = "Player 2 has chosen " + selected_char
                         else:
                             debugger_text = "Choose valid Piece"
 
@@ -145,7 +151,11 @@ def main():
 
                         turn += 1 if (debugger_text == PLACED) else 0
                     elif mb.places[i][j].isNotEmpty() and selected_char == NO_PIECE and moved_piece == NO_PIECE:
-                        if turn % 2 == mb.places[i][j].top_piece.player % 2:
+                        if not current_player().num == mb.places[i][j].top_piece.player:
+                            debugger_text = "Choose your own piece"
+                        elif not current_player().has_placed_queen():
+                            debugger_text = 'You cannot move any piece until queen is placed'
+                        else:
                             place = mb.places[i][j]
                             valid_moves = movement.valid_moves_of(mb, place, place.top_piece.type, should_pop=True)
                             if len(valid_moves) <= 0:
@@ -153,8 +163,6 @@ def main():
                             else:
                                 moved_piece = place.pop_top_piece()
                                 debugger_text = "Moving piece"
-                        else:
-                            debugger_text = "Choose your own piece"
                     else:
                         if mb.places[i][j].isNotEmpty():
                             debugger_text = "The place has already been taken"
