@@ -20,3 +20,6 @@ class Player:
 
     def get_free_piece_count(self, piece_name):
         return len(self._pieces[piece_name])
+
+    def has_placed_queen(self):
+        return self.get_free_piece_count(QUEEN) == 0
