@@ -19,6 +19,10 @@ class Board:
         filtered = filter(lambda p: p.isEmpty(), self.get_neighbors(hex_place))
         return list(filtered)
 
+    def get_full_neighbors(self, hex_place):
+        filtered = filter(lambda p: p.isNotEmpty(), self.get_neighbors(hex_place))
+        return list(filtered)
+
     def pos_x_of(self, hex_place):
         i, j = hex_place.pos
         ii, jj = (i, j + 1)

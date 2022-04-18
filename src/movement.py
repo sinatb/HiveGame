@@ -2,14 +2,11 @@ import queue
 from constants import *
 
 
-def is_movable(board, hex_place):
-    return True
-
-
 def is_crawlable(board, hex_place):
     def f(neighbor):
         common_neighbors = set(board.get_neighbors(hex_place)).intersection(board.get_neighbors(neighbor))
         return len(common_neighbors) == 2 and common_neighbors.pop().isEmpty() ^ common_neighbors.pop().isEmpty()
+
     return f
 
 
@@ -19,6 +16,7 @@ def is_connected(board):
             if n.isNotEmpty():
                 return True
         return False
+
     return f
 
 
@@ -27,11 +25,7 @@ def queen_moves(board, hex_place):
     return list(filter(is_crawlable(board, hex_place), empty_neighbors))
 
 
-def ant_moves(board, hex_place, pop=False):
-    piece = None
-    if pop:
-        piece = hex_place.pop_top_piece()
-
+def ant_moves(board, hex_place):
     result_set = set()
     processed = set()
     to_be_processed = queue.SimpleQueue()
@@ -49,8 +43,6 @@ def ant_moves(board, hex_place, pop=False):
             if not (f in processed):
                 to_be_processed.put_nowait(f)
 
-    if pop:
-        hex_place.top_piece = piece
     return list(result_set)
 
 
@@ -107,19 +99,68 @@ def spider_moves(board, hex_place):
     return list(set3)
 
 
-def valid_moves_of(board, hex_place, piece_type):
+def valid_moves_of(board, hex_place, piece_type, should_pop):
+    piece = hex_place.pop_top_piece() if should_pop else None
+    result = None
+
     if not is_movable(board, hex_place):
+        if should_pop:
+            hex_place.top_piece = piece
         return []
 
     if piece_type == QUEEN:
-        return queen_moves(board, hex_place)
+        result = queen_moves(board, hex_place)
     elif piece_type == ANT:
-        return ant_moves(board, hex_place)
+        result = ant_moves(board, hex_place)
     elif piece_type == COCKROACH:
-        return cockroach_moves(board, hex_place)
+        result = cockroach_moves(board, hex_place)
     elif piece_type == GRASSHOPPER:
-        return grasshopper_moves(board, hex_place)
+        result = grasshopper_moves(board, hex_place)
     elif piece_type == SPIDER:
-        return spider_moves(board, hex_place)
+        result = spider_moves(board, hex_place)
     else:
-        return []
+        result = []
+
+    if should_pop:
+        hex_place.top_piece = piece
+
+    return result
+
+
+def have_path(board, source, destination):
+    stack = [source]
+    checked = set()
+
+    while len(stack) > 0:
+        node = stack.pop()
+        children = board.get_full_neighbors(node)
+        for child in children:
+            if child == destination:
+                return True
+            elif child not in checked:
+                stack.append(child)
+
+        checked.add(node)
+    return False
+
+
+def is_movable(board, hex_place):
+    pos_x, neg_x = board.pos_x_of(hex_place), board.neg_x_of(hex_place)
+    pos_y, neg_y = board.pos_y_of(hex_place), board.neg_y_of(hex_place)
+    pos_z, neg_z = board.pos_z_of(hex_place), board.neg_z_of(hex_place)
+
+    directions = [
+        [pos_x, neg_x, pos_z, neg_y],
+        [pos_y, neg_x, neg_z, neg_y],
+        [pos_z, neg_z, pos_x, neg_y],
+    ]
+
+    for direc in directions:
+        is_ok = (direc[0] is None or direc[0].isEmpty()) or (
+                (direc[1] is None or direc[1].isEmpty() or have_path(board, direc[0], direc[1])) and (
+                direc[2] is None or direc[2].isEmpty() or have_path(board, direc[0], direc[2])) and (
+                        direc[3] is None or direc[3].isEmpty() or have_path(board, direc[0], direc[3])))
+        if not is_ok:
+            return False
+
+    return True

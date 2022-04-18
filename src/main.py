@@ -144,11 +144,12 @@ def main():
                         turn += 1 if (debugger_text == PLACED) else 0
                     elif mb.places[i][j].isNotEmpty() and selected_char == NO_PIECE and moved_piece == NO_PIECE:
                         if turn % 2 == mb.places[i][j].top_piece.player % 2:
-                            valid_moves = movement.valid_moves_of(mb, mb.places[i][j], mb.places[i][j].top_piece.type)
+                            place = mb.places[i][j]
+                            valid_moves = movement.valid_moves_of(mb, place, place.top_piece.type, should_pop=True)
                             if len(valid_moves) <= 0:
                                 debugger_text = 'This piece has no legal moves'
                             else:
-                                moved_piece = mb.places[i][j].pop_top_piece()
+                                moved_piece = place.pop_top_piece()
                                 debugger_text = "Moving piece"
                         else:
                             debugger_text = "Choose your own piece"
