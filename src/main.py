@@ -19,6 +19,9 @@ p1 = Player(1)
 p2 = Player(2)
 
 # screen assets
+eye_active = pygame.image.load("../assets/eye_active.png")
+eye_deactive = pygame.image.load("../assets/eye_n.png")
+
 spiderh = pygame.image.load("../assets/spider.JPG")
 anth = pygame.image.load("../assets/ant.JPG")
 cockroachh = pygame.image.load("../assets/cockroach.JPG")
@@ -46,6 +49,9 @@ Q_2 = pygame.image.load("../assets/Q_2.JPG")
 # removing the white background from assets
 hexagon.set_colorkey(FULL_WHITE)
 hexagon_valid.set_colorkey(FULL_WHITE)
+
+eye_active.set_colorkey(FULL_WHITE)
+eye_deactive.set_colorkey(FULL_WHITE)
 
 queenh.set_colorkey(FULL_WHITE)
 spiderh.set_colorkey(FULL_WHITE)
@@ -80,6 +86,7 @@ def main():
     moved_piece = NO_PIECE
     debugger_text = "Debugger"
     valid_moves = list()
+    is_eye_active = False
 
     def player1_turn():
         return turn % 2 == 1
@@ -103,7 +110,7 @@ def main():
         else:
             return DRAW
 
-    draw_field(mb, debugger_text, screen, turn, valid_moves)
+    draw_field(mb, debugger_text, screen,is_eye_active ,turn, valid_moves)
 
     # game loop
     while running:
@@ -204,7 +211,7 @@ def main():
                             print(i, j)
                             debugger_text = "Please select a piece"
 
-                draw_field(mb, debugger_text, screen, turn, valid_moves)
+                draw_field(mb, debugger_text, screen, is_eye_active, turn, valid_moves)
 
     pygame.quit()
 
@@ -219,7 +226,7 @@ def draw_deck(player, screen, location):
         ctr += 1
 
 
-def draw_field(board, debugger_text, screen, turn, valid_moves):
+def draw_field(board, debugger_text, screen,eye ,turn, valid_moves):
     # clear screen
     screen.fill(WHITE)
 
@@ -266,6 +273,8 @@ def draw_field(board, debugger_text, screen, turn, valid_moves):
     draw_deck(p1, screen, (950, 40))
     draw_deck(p2, screen, (950, SCREEN_HEIGHT/2 + 40))
 
+    eye_image = eye_active if eye else eye_deactive
+    screen.blit(eye_image,(SCREEN_WIDTH-100 , SCREEN_HEIGHT-100))
     # show
     pygame.display.flip()
 
