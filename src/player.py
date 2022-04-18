@@ -5,7 +5,8 @@ from src.piece import Piece
 class Player:
     def __init__(self, num):
         self.num = num
-        self._pieces = {QUEEN: [Piece(QUEEN, self.num)],
+        self.queen = Piece(QUEEN, self.num)
+        self._pieces = {QUEEN: [self.queen],
                         ANT: [Piece(ANT, self.num) for _ in range(3)],
                         GRASSHOPPER: [Piece(GRASSHOPPER, self.num) for _ in range(3)],
                         COCKROACH: [Piece(COCKROACH, self.num) for _ in range(2)],

@@ -8,11 +8,11 @@ import movement
 
 pygame.init()
 pygame.display.set_caption("Hive")
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT));
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # board and the players
 mb = Board(22, 22)
-P1_FIRST_PLACE = mb.places[11][10]
+P1_FIRST_PLACE = mb.places[10][11]
 P2_FIRST_PLACE = mb.neg_z_of(P1_FIRST_PLACE)
 
 p1 = Player(1)
@@ -87,13 +87,35 @@ def main():
     def current_player():
         return p1 if player1_turn() else p2
 
+    def game_status():
+        if not p1.has_placed_queen() or not p2.has_placed_queen():
+            return ONGOING
+        ii, jj = p1.queen.pos
+        queen1_in_siege = len(mb.get_empty_neighbors(mb.places[ii][jj])) == 0
+        ii, jj = p2.queen.pos
+        queen2_in_siege = len(mb.get_empty_neighbors(mb.places[ii][jj])) == 0
+        if not queen1_in_siege and not queen2_in_siege:
+            return ONGOING
+        elif queen1_in_siege and not queen2_in_siege:
+            return PLAYER2_WIN
+        elif not queen1_in_siege and queen2_in_siege:
+            return PLAYER1_WIN
+        else:
+            return DRAW
+
     draw_field(mb, debugger_text, screen, turn, valid_moves)
 
     # game loop
     while running:
+        gs = game_status()
+        if gs != ONGOING:
+            debugger_text = 'Game is a draw.' if gs == DRAW else f'Player {gs} won!'
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            elif gs != ONGOING:
+                draw_field(mb, debugger_text, screen, turn, valid_moves)
+                continue
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 (x, y) = event.pos
                 if (950 < x < SCREEN_WIDTH) and (0 < y < SCREEN_HEIGHT/2):
@@ -133,7 +155,8 @@ def main():
                 elif (0 < x < 950) and (0 < y < 750):
                     i = math.floor(y / 32)
                     j = math.floor((x - 35 + (0 if (i % 2 == 0) else 20)) / 40)
-                    if (0 <= j < 22 and mb.places[i][j].isEmpty() and
+                    if (0 <= j < 22 and (mb.places[i][j].isEmpty() or (
+                            moved_piece != NO_PIECE and moved_piece.type == COCKROACH)) and
                             (selected_char != NO_PIECE or moved_piece != NO_PIECE)):
 
                         if selected_char == NO_PIECE and moved_piece != NO_PIECE:
