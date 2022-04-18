@@ -24,6 +24,7 @@ anth = pygame.image.load("../assets/ant.JPG")
 cockroachh = pygame.image.load("../assets/cockroach.JPG")
 queenh = pygame.image.load("../assets/queen.JPG")
 grasshopperh = pygame.image.load("../assets/grasshopper.JPG")
+pass_turn = pygame.image.load("../assets/pass_turn_small.jpg")
 
 hexagon = pygame.image.load("../assets/hexagon.png")
 hexagon_valid = pygame.image.load("../assets/hexagon_valid.png")
@@ -203,7 +204,12 @@ def main():
                         else:
                             print(i, j)
                             debugger_text = "Please select a piece"
-
+                elif 810 < x < 940 and 760 < y < 785:
+                    if turn <= 8:
+                        debugger_text = 'Cannot change turn this early'
+                    else:
+                        turn += 1
+                        debugger_text = 'Turn changed'
                 draw_field(mb, debugger_text, screen, turn, valid_moves)
 
     pygame.quit()
@@ -261,8 +267,8 @@ def draw_field(board, debugger_text, screen, turn, valid_moves):
     screen.blit(player1text, (1082, 10))
     player2text = font.render("Player 2", True, RED)
     screen.blit(player2text, (1082, SCREEN_HEIGHT/2 + 10))
-    #
-    # # player deck drawer
+    screen.blit(pass_turn, (810, 760))
+    # player deck drawer
     draw_deck(p1, screen, (950, 40))
     draw_deck(p2, screen, (950, SCREEN_HEIGHT/2 + 40))
 
