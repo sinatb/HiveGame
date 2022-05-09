@@ -21,3 +21,6 @@ class HexPlace:
         return not self.isEmpty()
 
     top_piece = property(_get_top_piece, _set_top_piece)
+
+    def stack_string(self):
+        return str.join(' ', map(lambda piece: f'{piece.type}({piece.player.num})', self._pieces))
