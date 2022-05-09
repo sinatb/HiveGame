@@ -1,12 +1,42 @@
 import pygame
 import game_controller
+import math
 from constants import *
 
+
+SCREEN_WIDTH = 1280
+SCREEN_HEIGHT = 800
 
 pygame.init()
 clock = pygame.time.Clock()
 pygame.display.set_caption("Hive")
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+RED = (219, 12, 17)
+BLUE = (7, 90, 138)
+WHITE = (245, 245, 245)
+BLACK = (43, 43, 43)
+FULL_WHITE = (255, 255, 255)
+
+
+class Rectangle:
+    def __init__(self, x_top_left, x_bottom_right, y_top_left, y_bottom_right):
+        self.x_top_left = x_top_left
+        self.y_top_left = y_top_left
+        self.x_bottom_right = x_bottom_right
+        self.y_bottom_right = y_bottom_right
+
+    def __contains__(self, item):
+        return self.x_top_left <= item[0] <= self.x_bottom_right and self.y_top_left <= item[1] <= self.y_bottom_right
+
+
+# hit boxes
+INSPECTOR_MODE_BUTTON = Rectangle(SCREEN_WIDTH - 100, SCREEN_WIDTH, SCREEN_HEIGHT - 100, SCREEN_HEIGHT)
+PLAYER1_DECK = Rectangle(950, SCREEN_WIDTH, 0, SCREEN_HEIGHT / 2)
+PLAYER2_DECK = Rectangle(950, SCREEN_WIDTH, SCREEN_HEIGHT / 2, SCREEN_HEIGHT)
+BOARD_HITBOX = Rectangle(0, 950, 0, 750)
+PASS_TURN = Rectangle(810, 940, 760, 785)
+
 
 # screen assets
 eye_active = pygame.image.load("../assets/eye_active.png")
@@ -139,18 +169,27 @@ def draw_field(gs):
     pygame.display.flip()
 
 
-class Rectangle:
-    def __init__(self, x_top_left, y_top_left, x_bottom_right, y_bottom_right):
-        self.x_top_left = x_top_left
-        self.y_top_left = y_top_left
-        self.x_bottom_right = x_bottom_right
-        self.y_bottom_right = y_bottom_right
+def extract_board_i_j(x, y):
+    i = math.floor(y / 32)
+    j = math.floor((x - 35 + (0 if (i % 2 == 0) else 20)) / 40)
+    return i, j
 
-    def __contains__(self, item):
-        return self.x_top_left <= item[0] <= self.x_bottom_right and self.y_top_left <= item[1] <= self.y_bottom_right
+
+def extract_p1_deck_i_j(x, y):
+    i = math.floor((y - 40) / 47)
+    j = math.floor((x - 950) / 50)
+    return i, j
+
+
+def extract_p2_deck_i_j(x, y):
+    i = math.floor((y - 440) / 47)
+    j = math.floor((x - 950) / 50)
+    return i, j
 
 
 def tick(gs):
+    # setting frame rate
+    clock.tick(60)
 
     game_status = game_controller.game_status(gs)
 
@@ -166,8 +205,5 @@ def tick(gs):
         game_controller.handle_event(gs, event)
 
     draw_field(gs)
-
-    # setting frame rate
-    clock.tick(60)
 
     return True
