@@ -193,19 +193,30 @@ def find_outer_edge(board, some_point_inside):
     return result
 
 
-def legal_actions_of(board, player):
+def legal_actions_of(gs, player):
     result = []
 
     some_point_inside = None
     for onboard_piece in player.onboard_pieces():
         some_point_inside = onboard_piece.pos
-        for move in valid_moves_of(board, board(*onboard_piece.pos), onboard_piece.type, should_pop=True):
-            result.append((POP, onboard_piece.pos, move))
+        if not player.has_placed_queen():
+            continue
+        for move in valid_moves_of(gs.board, gs.board(*onboard_piece.pos), onboard_piece.type, should_pop=True):
+            result.append((POP, onboard_piece.pos, move.pos))
 
-    outer_edge = find_outer_edge(board, some_point_inside)
+    if gs.turn == 1:
+        outer_edge = [gs.P1_FIRST_PLACE()]
+    elif gs.turn == 2:
+        outer_edge = [gs.P2_FIRST_PLACE()]
+    else:
+        outer_edge = find_outer_edge(gs.board, some_point_inside)
     for ondeck_piece_type, count in player.ondeck_pieces():
         if count == 0:
             continue
+        if gs.has_to_enter_queen() and ondeck_piece_type != QUEEN:
+            continue
         for edge_place in outer_edge:
-            if can_accept_new_piece(board, edge_place, player.num):
+            if 1 <= gs.turn <= 2 or can_accept_new_piece(gs.board, edge_place, player.num):
                 result.append((NEW, ondeck_piece_type, edge_place.pos))
+
+    return result

@@ -4,10 +4,12 @@ from board import Board
 from player import Player
 import movement
 import gui
+import agents
 
 
 class GameState:
-    def __init__(self):
+    def __init__(self, game_mode=AI_AS_SECOND_PLAYER):
+        self.game_mode = game_mode
         self.turn = 1
         self.selected_char = NO_PIECE
         self.moved_piece = NO_PIECE
@@ -17,12 +19,43 @@ class GameState:
         self.board = Board(22, 22)
         self.p1 = Player(1)
         self.p2 = Player(2)
+        self.run_agent = agents.random_agent
+        self.agent_future = None
 
     def P1_FIRST_PLACE(self):
         return self.board(10, 11)
 
     def P2_FIRST_PLACE(self):
         return self.board.neg_z_of(self.P1_FIRST_PLACE())
+
+    def has_to_enter_queen(self):
+        return (self.turn == 7 and not self.p1.has_placed_queen()) or (
+                self.turn == 8 and not self.p2.has_placed_queen()
+        )
+
+
+def is_ai_turn(gs):
+    return (gs.game_mode == AI_AS_FIRST_PLAYER and player1_turn(gs)) or (
+            gs.game_mode == AI_AS_SECOND_PLAYER and not player1_turn(gs))
+
+
+def check_for_ai_turn(gs):
+    if not is_ai_turn(gs) or game_status(gs) != ONGOING:
+        return
+
+    player = current_player(gs)
+    future = gs.executor.submit(gs.run_agent, gs, player)
+
+    def callback(_future):
+        action = _future.result()
+        apply_action(gs.board, action, player)
+        gs.turn += 1
+        gs.debugger_text = f'AI played {action}'
+
+    future.add_done_callback(callback)
+    gs.agent_future = future
+
+    gs.debugger_text = 'AI is thinking...'
 
 
 def player1_turn(gs):
@@ -52,8 +85,10 @@ def handle_event(gs, event):
     if event.type != pygame.MOUSEBUTTONDOWN:
         return
 
+    if is_ai_turn(gs):
+        return
+
     pos = event.pos
-    print(f'Clicked on {pos}')
 
     if pos in gui.INSPECTOR_MODE_BUTTON:
         gs.inspector_mode = not gs.inspector_mode
@@ -76,6 +111,7 @@ def handle_event(gs, event):
         else:
             gs.turn += 1
             gs.debugger_text = 'Turn changed'
+            check_for_ai_turn(gs)
 
 
 def handle_board_click(gs, pos):
@@ -111,7 +147,9 @@ def handle_board_click(gs, pos):
                 if gs.turn <= 2:
                     gs.valid_moves = list()
 
-        gs.turn += 1 if (gs.debugger_text == PLACED) else 0
+        if gs.debugger_text == PLACED:
+            gs.turn += 1
+            check_for_ai_turn(gs)
     elif gs.board(i, j).isNotEmpty() and gs.selected_char == NO_PIECE and gs.moved_piece == NO_PIECE:
         if not current_player(gs).num == gs.board(i, j).top_piece.player:
             gs.debugger_text = "Choose your own piece"
@@ -140,7 +178,7 @@ def handle_p2_deck_click(gs, pos):
     else:
         i, j = gui.extract_p2_deck_i_j(*pos)
         if i == 0:
-            if gs.turn == 8 and ALL_PIECES[j] != QUEEN and not gs.p2.has_placed_queen():
+            if gs.has_to_enter_queen() and ALL_PIECES[j] != QUEEN:
                 gs.debugger_text = 'You have to place your queen at this turn'
             else:
                 gs.selected_char = ALL_PIECES[j]
@@ -157,7 +195,7 @@ def handle_p1_deck_click(gs, pos):
     else:
         i, j = gui.extract_p1_deck_i_j(*pos)
         if i == 0:
-            if gs.turn == 7 and ALL_PIECES[j] != QUEEN and not gs.p1.has_placed_queen():
+            if gs.has_to_enter_queen() and ALL_PIECES[j] != QUEEN:
                 gs.debugger_text = 'You have to place your queen at this turn'
             else:
                 gs.selected_char = ALL_PIECES[j]
@@ -176,15 +214,15 @@ def handle_inspector_mode(gs, pos):
         gs.debugger_text = gs.board(i, j).stack_string()
 
 
-def apply_action(gs, action, player):
+def apply_action(board, action, player):
     # pop_action = (POP, (1, 1), (1, 2))
     # new_action = (NEW, QUEEN, (1, 1))
 
     if action[0] == POP:
-        top_piece = gs.board(*action[1]).pop_top_piece()
-        gs.board(*action[2]).top_piece = top_piece
+        top_piece = board(*action[1]).pop_top_piece()
+        board(*action[2]).top_piece = top_piece
         return
 
     if action[0] == NEW:
         piece = player.get_free_piece(action[1])
-        gs.board(*action[2]).top_piece = piece
+        board(*action[2]).top_piece = piece

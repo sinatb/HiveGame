@@ -16,3 +16,6 @@ DRAW = 3
 POP = 'P'
 NEW = 'N'
 
+PVP = 'pvp'
+AI_AS_FIRST_PLAYER = 'ai1'
+AI_AS_SECOND_PLAYER = 'ai2'
