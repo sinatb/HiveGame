@@ -19,7 +19,7 @@ class GameState:
         self.p2 = Player(2)
 
     def P1_FIRST_PLACE(self):
-        return self.board.places[10][11]
+        return self.board(10, 11)
 
     def P2_FIRST_PLACE(self):
         return self.board.neg_z_of(self.P1_FIRST_PLACE())
@@ -36,10 +36,8 @@ def current_player(gs):
 def game_status(gs):
     if not gs.p1.has_placed_queen() or not gs.p2.has_placed_queen():
         return ONGOING
-    ii, jj = gs.p1.queen.pos
-    queen1_in_siege = len(gs.board.get_empty_neighbors(gs.board.places[ii][jj])) == 0
-    ii, jj = gs.p2.queen.pos
-    queen2_in_siege = len(gs.board.get_empty_neighbors(gs.board.places[ii][jj])) == 0
+    queen1_in_siege = len(gs.board.get_empty_neighbors(gs.board(*gs.p1.queen.pos))) == 0
+    queen2_in_siege = len(gs.board.get_empty_neighbors(gs.board(*gs.p2.queen.pos))) == 0
     if not queen1_in_siege and not queen2_in_siege:
         return ONGOING
     elif queen1_in_siege and not queen2_in_siege:
@@ -86,12 +84,12 @@ def handle_board_click(gs, pos):
     if not gs.board.in_range(i, j):
         return
 
-    if (gs.board.places[i][j].isEmpty() or (gs.moved_piece != NO_PIECE and gs.moved_piece.type == COCKROACH)) and (
+    if (gs.board(i, j).isEmpty() or (gs.moved_piece != NO_PIECE and gs.moved_piece.type == COCKROACH)) and (
             gs.selected_char != NO_PIECE or gs.moved_piece != NO_PIECE):
 
         if gs.selected_char == NO_PIECE and gs.moved_piece != NO_PIECE:
-            if gs.board.places[i][j] in gs.valid_moves:
-                gs.board.places[i][j].top_piece = gs.moved_piece
+            if gs.board(i, j) in gs.valid_moves:
+                gs.board(i, j).top_piece = gs.moved_piece
                 gs.debugger_text = PLACED
                 gs.moved_piece = NO_PIECE
                 gs.valid_moves = list()
@@ -101,26 +99,26 @@ def handle_board_click(gs, pos):
             if not current_player(gs).has_free_piece(gs.selected_char):
                 gs.debugger_text = 'There is no such piece left'
                 gs.selected_char = NO_PIECE
-            elif gs.turn <= 2 and not gs.board.places[i][j] in gs.valid_moves:
+            elif gs.turn <= 2 and not gs.board(i, j) in gs.valid_moves:
                 gs.debugger_text = 'Your first move has to be at the marked place'
-            elif gs.turn > 2 and not movement.can_accept_new_piece(gs.board, gs.board.places[i][j],
+            elif gs.turn > 2 and not movement.can_accept_new_piece(gs.board, gs.board(i, j),
                                                                    current_player(gs).num):
                 gs.debugger_text = 'A new piece cannot be placed here'
             else:
-                gs.board.places[i][j].top_piece = current_player(gs).get_free_piece(gs.selected_char)
+                gs.board(i, j).top_piece = current_player(gs).get_free_piece(gs.selected_char)
                 gs.debugger_text = PLACED
                 gs.selected_char = NO_PIECE
                 if gs.turn <= 2:
                     gs.valid_moves = list()
 
         gs.turn += 1 if (gs.debugger_text == PLACED) else 0
-    elif gs.board.places[i][j].isNotEmpty() and gs.selected_char == NO_PIECE and gs.moved_piece == NO_PIECE:
-        if not current_player(gs).num == gs.board.places[i][j].top_piece.player:
+    elif gs.board(i, j).isNotEmpty() and gs.selected_char == NO_PIECE and gs.moved_piece == NO_PIECE:
+        if not current_player(gs).num == gs.board(i, j).top_piece.player:
             gs.debugger_text = "Choose your own piece"
         elif not current_player(gs).has_placed_queen():
             gs.debugger_text = 'You cannot move any piece until queen is placed'
         else:
-            place = gs.board.places[i][j]
+            place = gs.board(i, j)
             gs.valid_moves = movement.valid_moves_of(gs.board, place, place.top_piece.type, should_pop=True)
             if len(gs.valid_moves) <= 0:
                 gs.debugger_text = 'This piece has no legal moves'
@@ -128,7 +126,7 @@ def handle_board_click(gs, pos):
                 gs.moved_piece = place.pop_top_piece()
                 gs.debugger_text = "Moving piece"
     else:
-        if gs.board.places[i][j].isNotEmpty():
+        if gs.board(i, j).isNotEmpty():
             gs.debugger_text = "The place has already been taken"
             gs.selected_char = NO_PIECE
         else:
@@ -174,5 +172,5 @@ def handle_inspector_mode(gs, pos):
     if pos not in gui.BOARD_HITBOX:
         return
     i, j = gui.extract_board_i_j(*pos)
-    if gs.board.in_range(i, j) and gs.board.places[i][j].isNotEmpty():
-        gs.debugger_text = gs.board.places[i][j].stack_string()
+    if gs.board.in_range(i, j) and gs.board(i, j).isNotEmpty():
+        gs.debugger_text = gs.board(i, j).stack_string()

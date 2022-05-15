@@ -118,25 +118,26 @@ def draw_field(gs):
     # hex field drawer
     for i in range(gs.board.m):
         for j in range(gs.board.n):
-            hex_pic = hexagon_valid if gs.board.places[i][j] in gs.valid_moves else hexagon
+            hex_pic = hexagon_valid if gs.board(i, j) in gs.valid_moves else hexagon
 
             screen.blit(hex_pic, (j * 40 + (0 if (i % 2 == 0) else -20) + 35, i * 32))
-            if gs.board.places[i][j].isEmpty():
+            if gs.board(i, j).isEmpty():
                 continue
 
-            is_for_p1 = gs.board.places[i][j].top_piece.player == 1
+            is_for_p1 = gs.board(i, j).top_piece.player == 1
 
             q_pic, a_pic, c_pic, s_pic, g_pic = (Q_1, A_1, C_1, S_1, G_1) if is_for_p1 else (Q_2, A_2, C_2, S_2, G_2)
 
-            if gs.board.places[i][j].top_piece.type == QUEEN:
+            top_piece_type = gs.board(i, j).top_piece.type
+            if top_piece_type == QUEEN:
                 screen.blit(q_pic, (j * 40 + (0 if (i % 2 == 0) else -25) + 36, i * 32 + 10))
-            elif gs.board.places[i][j].top_piece.type == ANT:
+            elif top_piece_type == ANT:
                 screen.blit(a_pic, (j * 40 + (0 if (i % 2 == 0) else -25) + 46, i * 32 + 8))
-            elif gs.board.places[i][j].top_piece.type == COCKROACH:
+            elif top_piece_type == COCKROACH:
                 screen.blit(c_pic, (j * 40 + (0 if (i % 2 == 0) else -25) + 43, i * 32 + 14))
-            elif gs.board.places[i][j].top_piece.type == SPIDER:
+            elif top_piece_type == SPIDER:
                 screen.blit(s_pic, (j * 40 + (0 if (i % 2 == 0) else -25) + 40, i * 32 + 13))
-            elif gs.board.places[i][j].top_piece.type == GRASSHOPPER:
+            elif top_piece_type == GRASSHOPPER:
                 screen.blit(g_pic, (j * 40 + (0 if (i % 2 == 0) else -25) + 38, i * 32 + 12))
 
     # field lines
