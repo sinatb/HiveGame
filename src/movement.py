@@ -176,3 +176,36 @@ def can_accept_new_piece(board, hex_place, player_num):
             return False
         self_count += 1
     return self_count > 0
+
+
+def find_outer_edge(board, some_point_inside):
+    if some_point_inside is None:
+        return []
+
+    edge_place = board(some_point_inside[0], 0)
+    while edge_place.isEmpty():
+        edge_place = board.pos_x_of(edge_place)
+
+    edge_place = board.neg_x_of(edge_place)
+    result = ant_moves(board, edge_place)
+    result.append(edge_place)
+
+    return result
+
+
+def legal_actions_of(board, player):
+    result = []
+
+    some_point_inside = None
+    for onboard_piece in player.onboard_pieces():
+        some_point_inside = onboard_piece.pos
+        for move in valid_moves_of(board, board(*onboard_piece.pos), onboard_piece.type, should_pop=True):
+            result.append((POP, onboard_piece.pos, move))
+
+    outer_edge = find_outer_edge(board, some_point_inside)
+    for ondeck_piece_type, count in player.ondeck_pieces():
+        if count == 0:
+            continue
+        for edge_place in outer_edge:
+            if can_accept_new_piece(board, edge_place, player.num):
+                result.append((NEW, ondeck_piece_type, edge_place.pos))

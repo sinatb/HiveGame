@@ -174,3 +174,17 @@ def handle_inspector_mode(gs, pos):
     i, j = gui.extract_board_i_j(*pos)
     if gs.board.in_range(i, j) and gs.board(i, j).isNotEmpty():
         gs.debugger_text = gs.board(i, j).stack_string()
+
+
+def apply_action(gs, action, player):
+    # pop_action = (POP, (1, 1), (1, 2))
+    # new_action = (NEW, QUEEN, (1, 1))
+
+    if action[0] == POP:
+        top_piece = gs.board(*action[1]).pop_top_piece()
+        gs.board(*action[2]).top_piece = top_piece
+        return
+
+    if action[0] == NEW:
+        piece = player.get_free_piece(action[1])
+        gs.board(*action[2]).top_piece = piece

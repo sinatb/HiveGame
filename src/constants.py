@@ -12,3 +12,7 @@ ONGOING = 0
 PLAYER1_WIN = 1
 PLAYER2_WIN = 2
 DRAW = 3
+
+POP = 'P'
+NEW = 'N'
+
