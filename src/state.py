@@ -25,8 +25,15 @@ class LazyBoard(Board):
             self._place_of[new_hex_place.pos] = new_hex_place
 
     def __call__(self, *args):
-        i, j = args[0], args[1]
-        return self._place_of[(i, j)] if self.in_range(i, j) else None
+        pos = args[0], args[1]
+        
+        if not self.in_range(*pos):
+            return None
+
+        if pos not in self._place_of:
+            self._place_of[pos] = HexPlace(pos)
+
+        return self._place_of[pos]
 
     def not_empty_places(self):
         return list(filter(HexPlace.isNotEmpty, self._place_of.values()))
@@ -72,7 +79,7 @@ def from_game_state(gs):
     return State(
         gs.board.n,
         gs.board.m,
-        gs.board.not_empty_places,
+        gs.board.not_empty_places(),
         gs.turn,
         gs.P1_FIRST_PLACE().pos,
         gs.P2_FIRST_PLACE().pos
