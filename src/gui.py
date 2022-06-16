@@ -118,17 +118,18 @@ def draw_field(gs):
     # hex field drawer
     for i in range(gs.board.m):
         for j in range(gs.board.n):
-            hex_pic = hexagon_valid if gs.board(i, j) in gs.valid_moves else hexagon
+            hexplace = gs.board(i, j)
+            hex_pic = hexagon_valid if hexplace in gs.valid_moves else hexagon
 
             screen.blit(hex_pic, (j * 40 + (0 if (i % 2 == 0) else -20) + 35, i * 32))
-            if gs.board(i, j).isEmpty():
+            if hexplace.isEmpty():
                 continue
 
-            is_for_p1 = gs.board(i, j).top_piece.player == 1
+            is_for_p1 = hexplace.top_piece.player == 1
 
             q_pic, a_pic, c_pic, s_pic, g_pic = (Q_1, A_1, C_1, S_1, G_1) if is_for_p1 else (Q_2, A_2, C_2, S_2, G_2)
 
-            top_piece_type = gs.board(i, j).top_piece.type
+            top_piece_type = hexplace.top_piece.type
             if top_piece_type == QUEEN:
                 screen.blit(q_pic, (j * 40 + (0 if (i % 2 == 0) else -25) + 36, i * 32 + 10))
             elif top_piece_type == ANT:
