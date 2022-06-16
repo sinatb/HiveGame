@@ -26,36 +26,44 @@ class Board:
     def pos_x_of(self, hex_place):
         i, j = hex_place.pos
         ii, jj = (i, j + 1)
-        return self._places[ii][jj] if self.in_range(ii, jj) else None
+        return self(ii, jj)
 
     def neg_x_of(self, hex_place):
         i, j = hex_place.pos
         ii, jj = (i, j - 1)
-        return self._places[ii][jj] if self.in_range(ii, jj) else None
+        return self(ii, jj)
 
     def pos_y_of(self, hex_place):
         i, j = hex_place.pos
         ii, jj = (i - 1, j) if i % 2 == 1 else (i - 1, j + 1)
-        return self._places[ii][jj] if self.in_range(ii, jj) else None
+        return self(ii, jj)
 
     def neg_y_of(self, hex_place):
         i, j = hex_place.pos
         ii, jj = (i + 1, j - 1) if i % 2 == 1 else (i + 1, j)
-        return self._places[ii][jj] if self.in_range(ii, jj) else None
+        return self(ii, jj)
 
     def pos_z_of(self, hex_place):
         i, j = hex_place.pos
         ii, jj = (i - 1, j - 1) if i % 2 == 1 else (i - 1, j)
-        return self._places[ii][jj] if self.in_range(ii, jj) else None
+        return self(ii, jj)
 
     def neg_z_of(self, hex_place):
         i, j = hex_place.pos
         ii, jj = (i + 1, j) if i % 2 == 1 else (i + 1, j + 1)
-        return self._places[ii][jj] if self.in_range(ii, jj) else None
+        return self(ii, jj)
 
     def in_range(self, i, j):
         return 0 <= i < self.m and 0 <= j < self.n
 
     def __call__(self, *args):
         i, j = args[0], args[1]
-        return self._places[i][j]
+        return self._places[i][j] if self.in_range(i, j) else None
+
+    def not_empty_places(self):
+        not_empty_places = []
+        for i in range(self.m):
+            for j in range(self.n):
+                if self(i, j).isNotEmpty():
+                    not_empty_places.append(self(i, j))
+        return not_empty_places

@@ -1,8 +1,8 @@
 
 class HexPlace:
-    def __init__(self, pos):
+    def __init__(self, pos, pieces=None):
         self.pos = pos
-        self._pieces = []
+        self._pieces = pieces if pieces is not None else []
 
     def _get_top_piece(self):
         return self._pieces[-1]
@@ -24,3 +24,6 @@ class HexPlace:
 
     def stack_string(self):
         return str.join(' ', map(lambda piece: f'{piece.type}({piece.player})', self._pieces))
+
+    def stack(self):
+        return iter(self._pieces)
