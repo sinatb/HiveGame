@@ -201,6 +201,8 @@ def legal_actions_of(state, player):
         some_point_inside = onboard_piece.pos
         if not player.has_placed_queen():
             continue
+        if state.board(*onboard_piece.pos).top_piece != onboard_piece:
+            continue
         for move in valid_moves_of(state.board, state.board(*onboard_piece.pos), onboard_piece.type, should_pop=True):
             result.append((POP, onboard_piece.pos, move.pos))
 

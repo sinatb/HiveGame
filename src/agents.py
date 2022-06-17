@@ -42,7 +42,7 @@ def alpha_beta(node, depth, a, b, max_player_num, return_action=False):
                 break
             a = max(a, val)
 
-        return val, max_action if return_action else val
+        return (val, max_action) if return_action else val
     else:
         val = math.inf
         min_action = None
@@ -60,7 +60,7 @@ def alpha_beta(node, depth, a, b, max_player_num, return_action=False):
                 break
             b = min(b, val)
 
-        return val, min_action if return_action else val
+        return (val, min_action) if return_action else val
 
 
 def heuristic(s, player_num):
