@@ -3,6 +3,8 @@ class HexPlace:
     def __init__(self, pos, pieces=None):
         self.pos = pos
         self._pieces = pieces if pieces is not None else []
+        for p in self._pieces:
+            p.pos = self.pos
 
     def _get_top_piece(self):
         return self._pieces[-1]
