@@ -149,7 +149,7 @@ def draw_field(gs):
     # # texts
     debugger_color = RED if gs.turn % 2 == 0 else BLUE
     #
-    debugger = font.render(gs.debugger_text, True, debugger_color)
+    debugger = font.render(f'turn: {gs.turn} | {gs.debugger_text}', True, debugger_color)
     screen.blit(debugger, (10, 760))
     player1text = font.render("Player 1", True, BLUE)
     screen.blit(player1text, (1082, 10))
