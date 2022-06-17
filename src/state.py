@@ -61,7 +61,7 @@ class State:
 
     def apply(self, action, clone=True):
         result = self.clone() if clone else self
-        game_controller.apply_action(result.board, action, game_controller.current_player(result))
+        game_controller.apply_action(result, action)
         return result
 
     def clone(self):
@@ -73,6 +73,9 @@ class State:
             self._P1_FIRST_POS,
             self._P2_FIRST_POS
         )
+
+    def current_player(self):
+        return game_controller.current_player(self)
 
 
 def from_game_state(gs):

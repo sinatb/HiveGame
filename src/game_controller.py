@@ -19,7 +19,7 @@ class GameState:
         self.board = Board(22, 22)
         self.p1 = Player(1)
         self.p2 = Player(2)
-        self.run_agent = agents.random_agent
+        self.run_agent = agents.alpha_beta_agent
         self.agent_future = None
 
     def P1_FIRST_PLACE(self):
@@ -32,6 +32,9 @@ class GameState:
         return (self.turn == 7 and not self.p1.has_placed_queen()) or (
                 self.turn == 8 and not self.p2.has_placed_queen()
         )
+
+    def current_player(self):
+        return current_player(self)
 
 
 def is_ai_turn(gs):
@@ -48,8 +51,7 @@ def check_for_ai_turn(gs):
 
     def callback(_future):
         action = _future.result()
-        apply_action(gs.board, action, player)
-        gs.turn += 1
+        apply_action(gs, action)
         gs.debugger_text = f'AI played {action}'
 
     future.add_done_callback(callback)
@@ -214,15 +216,20 @@ def handle_inspector_mode(gs, pos):
         gs.debugger_text = gs.board(i, j).stack_string()
 
 
-def apply_action(board, action, player):
+def apply_action(state, action):
     # pop_action = (POP, (1, 1), (1, 2))
     # new_action = (NEW, QUEEN, (1, 1))
 
+    player = current_player(state)
+    state.turn += 1
+
     if action[0] == POP:
-        top_piece = board(*action[1]).pop_top_piece()
-        board(*action[2]).top_piece = top_piece
+        assert state.board(*action[1]).top_piece.player == player.num
+
+        top_piece = state.board(*action[1]).pop_top_piece()
+        state.board(*action[2]).top_piece = top_piece
         return
 
     if action[0] == NEW:
         piece = player.get_free_piece(action[1])
-        board(*action[2]).top_piece = piece
+        state.board(*action[2]).top_piece = piece
