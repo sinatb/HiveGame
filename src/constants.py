@@ -15,7 +15,10 @@ DRAW = 3
 
 POP = 'P'
 NEW = 'N'
+PASS = 'pass'
 
 PVP = 'pvp'
 AI_AS_FIRST_PLAYER = 'ai1'
 AI_AS_SECOND_PLAYER = 'ai2'
+
+PASS_ACTION = (PASS, None, None)

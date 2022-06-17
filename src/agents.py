@@ -13,7 +13,7 @@ def random_agent(gs, player):
 
 
 def alpha_beta_agent(gs, player):
-    val, action = alpha_beta(state.from_game_state(gs), 1, -math.inf, math.inf, player.num, return_action=True)
+    val, action = alpha_beta(state.from_game_state(gs), 5, -math.inf, math.inf, player.num, return_action=True)
     return action
 
 
@@ -24,6 +24,13 @@ def alpha_beta(node, depth, a, b, max_player_num, return_action=False):
 
     player = node.current_player()
     legal_actions = movement.legal_actions_of(node, player)
+
+    if len(legal_actions) == 0:
+        if node.leading_actions[-1] == PASS_ACTION:
+            print('What the hell')
+            print(node.leading_actions)
+            return heuristic(node, max_player_num)
+        return alpha_beta(node.apply(PASS_ACTION), depth, a, b, max_player_num, return_action=return_action)
 
     if player.num == max_player_num:
         val = -math.inf

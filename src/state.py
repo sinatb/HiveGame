@@ -44,6 +44,7 @@ class State:
         self.turn = turn
         self.p1 = Player(1)
         self.p2 = Player(2)
+        self.leading_actions = []
         self._P1_FIRST_POS = p1_first_pos
         self._P2_FIRST_POS = p2_first_pos
         self.board = LazyBoard(n, m, self.p1, self.p2, not_empty_places)
@@ -62,6 +63,7 @@ class State:
     def apply(self, action, clone=True):
         result = self.clone() if clone else self
         game_controller.apply_action(result, action)
+        result.leading_actions = self.leading_actions + [action]
         return result
 
     def clone(self):
