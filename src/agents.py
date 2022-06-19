@@ -4,6 +4,7 @@ from state import from_game_state
 import game_controller
 from constants import *
 import math
+import time
 
 
 def random_agent(gs, player):
@@ -13,7 +14,11 @@ def random_agent(gs, player):
 
 
 def alpha_beta_agent(gs, player):
+    print('AI turn:')
+    s = time.time()
     val, action = alpha_beta(from_game_state(gs), 4, -math.inf, math.inf, player.num, return_action=True)
+    print(f'found move in {round(time.time() - s, 1)}s')
+    print()
     return action
 
 
@@ -95,6 +100,12 @@ def reduce_actions(state, actions, player):
                 del actions[i]
                 i -= 1
         i += 1
+
+    rc = old_len - len(actions)
+    if rc > 0:
+        print(f'\treduction count: {rc}. pop ant stats: {pop_ant_removed}/{pop_ant_count}')
+
+
 def heuristic(state, player_num, coefficients=None):
     status = game_controller.game_status(state)
 

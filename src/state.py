@@ -79,6 +79,15 @@ class State:
     def current_player(self):
         return game_controller.current_player(self)
 
+    def print(self):
+        print(f'turn: {self.turn}')
+        for hexplace in self.board.not_empty_places():
+            print(f'{hexplace.pos}: {list(hexplace.stack())}')
+        for player in [self.p1, self.p2]:
+            print(f'Player {player.num}')
+            print(player._pieces)
+            print()
+
 
 def from_game_state(gs):
     return State(

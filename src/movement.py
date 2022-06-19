@@ -199,6 +199,7 @@ def find_outer_edge(board, some_point_inside):
 def legal_actions_of(state, player):
     result = []
 
+    ant_n = 0
     some_point_inside = None
     for onboard_piece in player.onboard_pieces():
         some_point_inside = onboard_piece.pos
@@ -208,6 +209,7 @@ def legal_actions_of(state, player):
             continue
         for move in valid_moves_of(state.board, state.board(*onboard_piece.pos), onboard_piece.type, should_pop=True):
             result.append((POP, onboard_piece.pos, move.pos))
+            ant_n += onboard_piece.type == ANT
 
     if state.turn == 1:
         outer_edge = [state.P1_FIRST_PLACE()]
@@ -215,6 +217,7 @@ def legal_actions_of(state, player):
         outer_edge = [state.P2_FIRST_PLACE()]
     else:
         outer_edge = find_outer_edge(state.board, some_point_inside)
+
     for ondeck_piece_type, count in player.ondeck_pieces():
         if count == 0:
             continue
@@ -223,5 +226,7 @@ def legal_actions_of(state, player):
         for edge_place in outer_edge:
             if 1 <= state.turn <= 2 or can_accept_new_piece(state.board, edge_place, player.num):
                 result.append((NEW, ondeck_piece_type, edge_place.pos))
+                ant_n += ondeck_piece_type == ANT
 
+    print(f'Legal actions: {len(result)}, ant percentage: {round(ant_n / len(result), 3)}')
     return result
