@@ -24,6 +24,7 @@ def alpha_beta(node, depth, a, b, max_player_num, return_action=False):
 
     player = node.current_player()
     legal_actions = movement.legal_actions_of(node, player)
+    reduce_actions(node, legal_actions, player)
 
     if len(legal_actions) == 0:
         if node.leading_actions[-1] == PASS_ACTION:
@@ -70,6 +71,30 @@ def alpha_beta(node, depth, a, b, max_player_num, return_action=False):
         return (val, min_action) if return_action else val
 
 
+def reduce_actions(state, actions, player):
+    old_len = len(actions)
+    new_ant_limit = 3
+    new_ant_count = 0
+    pop_ant_count = 0
+    pop_ant_removed = 0
+    i = 0
+    while i < len(actions):
+        a = actions[i]
+        if a[0] == NEW and a[1] == ANT:
+            new_ant_count += 1
+            if new_ant_count > new_ant_limit:
+                del actions[i]
+                i -= 1
+        elif a[0] == POP and state.board(*a[1]).top_piece.type == ANT:
+            pop_ant_count += 1
+            old_h = heuristic(state, player.num)
+            new_h = heuristic(state.apply(a), player.num)
+
+            if new_h - old_h < 1.5:
+                pop_ant_removed += 1
+                del actions[i]
+                i -= 1
+        i += 1
 def heuristic(state, player_num, coefficients=None):
     status = game_controller.game_status(state)
 
