@@ -153,6 +153,9 @@ def is_movable(board, hex_place):
         [pos_x, neg_x, pos_z, neg_y],
         [pos_y, neg_x, neg_z, neg_y],
         [pos_z, neg_z, pos_x, neg_y],
+        [neg_x, pos_x, pos_y, neg_z],
+        # [neg_y, pos_y, pos_x, pos_z],
+        # [neg_z, pos_z, pos_y, neg_x],
     ]
 
     for direc in directions:
