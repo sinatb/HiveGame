@@ -44,10 +44,11 @@ class State:
         self.turn = turn
         self.p1 = Player(1)
         self.p2 = Player(2)
-        self.leading_actions = []
+        # self.leading_actions = []
         self._P1_FIRST_POS = p1_first_pos
         self._P2_FIRST_POS = p2_first_pos
         self.board = LazyBoard(n, m, self.p1, self.p2, not_empty_places)
+        self.children = dict()
 
     def has_to_enter_queen(self):
         return (self.turn == 7 and not self.p1.has_placed_queen()) or (
@@ -60,10 +61,13 @@ class State:
     def P2_FIRST_PLACE(self):
         return self.board(*self._P2_FIRST_POS)
 
-    def apply(self, action, clone=True):
+    def apply(self, action, clone=True, add_to_children=True):
         result = self.clone() if clone else self
         game_controller.apply_action(result, action)
-        result.leading_actions = self.leading_actions + [action]
+        # result.leading_actions = self.leading_actions + [action]
+
+        if add_to_children:
+            self.children[action] = result
         return result
 
     def clone(self):

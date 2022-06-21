@@ -13,131 +13,118 @@ def random_agent(gs, player):
     return legal_actions[random.randrange(len(legal_actions))]
 
 
-def alpha_beta_agent(gs, player):
-    print('AI turn:')
-    s = time.time()
-    val, action = alpha_beta(from_game_state(gs), 4, -math.inf, math.inf, player.num, return_action=True)
-    print(f'found move in {round(time.time() - s, 1)}s')
-    print()
-    return action
+class AlphaBetaAgent:
+    def __init__(self, coefficients):
+        self.coefficients = coefficients
+        self.root = None
+        self.previous_action = None
 
+    def run(self, gs, player):
+        print('AI turn:')
+        s = time.time()
+        val, action = self.alpha_beta(from_game_state(gs), 4, -math.inf, math.inf, player.num, return_action=True)
+        print(f'found move in {round(time.time() - s, 1)}s')
+        print()
+        return action
 
-def alpha_beta(node, depth, a, b, max_player_num, return_action=False):
-    if depth == 0 or game_controller.game_status(node) != ONGOING:
-        val = heuristic(node, max_player_num)
-        return (val, None) if return_action else val
+    def alpha_beta(self, node, depth, a, b, max_player_num, return_action=False):
+        if depth == 0 or game_controller.game_status(node) != ONGOING:
+            val = self.heuristic(node, max_player_num)
+            return (val, None) if return_action else val
 
-    player = node.current_player()
-    legal_actions = movement.legal_actions_of(node, player)
-    reduce_actions(node, legal_actions, player)
+        player = node.current_player()
+        maximizing = player.num == max_player_num
 
-    if len(legal_actions) == 0:
-        if node.leading_actions[-1] == PASS_ACTION:
-            print('What the hell')
-            print(node.leading_actions)
-            return heuristic(node, max_player_num)
-        return alpha_beta(node.apply(PASS_ACTION), depth, a, b, max_player_num, return_action=return_action)
+        action_children = node.children.items()
+        if not node.children:
+            legal_actions = movement.legal_actions_of(node, player)
+            if len(legal_actions) == 0:
+                return self.alpha_beta(node.apply(PASS_ACTION), depth, a, b, max_player_num,
+                                       return_action=return_action)
 
-    if player.num == max_player_num:
-        val = -math.inf
-        max_action = None
+            self.reduce_actions(node, legal_actions, player)
+            action_children = zip(legal_actions, map(node.apply, legal_actions))
 
-        for action in legal_actions:
+        val = -math.inf if maximizing else math.inf
+        minmax_action = None
+
+        for action, child in action_children:
             child = node.apply(action)
             # val = max(val, alpha_beta(child, depth - 1, a, b, max_player_num))
 
-            child_val = alpha_beta(child, depth - 1, a, b, max_player_num)
-            if child_val >= val:
+            child_val = self.alpha_beta(child, depth - 1, a, b, max_player_num)
+            if (maximizing and child_val >= val) or (not maximizing and child_val <= val):
                 val = child_val
-                max_action = action
+                minmax_action = action
 
-            if val >= b:
+            if (maximizing and val >= b) or (not maximizing and val <= a):
                 break
-            a = max(a, val)
+                
+            if maximizing:
+                a = max(a, val)
+            else:
+                b = min(b, val)
 
-        return (val, max_action) if return_action else val
-    else:
-        val = math.inf
-        min_action = None
+        return (val, minmax_action) if return_action else val
 
-        for action in legal_actions:
-            child = node.apply(action)
-            # val = min(val, alpha_beta(child, depth - 1, a, b, max_player_num))
+    def heuristic(self, state, player_num):
+        status = game_controller.game_status(state)
 
-            child_val = alpha_beta(child, depth - 1, a, b, max_player_num)
-            if child_val <= val:
-                val = child_val
-                min_action = action
+        if status == DRAW:
+            return 0.0
 
-            if val <= a:
-                break
-            b = min(b, val)
+        if status != ONGOING:
+            win = (player_num == 1 and status == PLAYER1_WIN) or (player_num == 2 and status == PLAYER2_WIN)
+            return math.inf if win else -math.inf
 
-        return (val, min_action) if return_action else val
+        a, b, c, d, e, f, g = self.coefficients
 
+        own_player, enemy_player = (state.p1, state.p2) if player_num == 1 else (state.p2, state.p1)
 
-def reduce_actions(state, actions, player):
-    old_len = len(actions)
-    new_ant_limit = 3
-    new_ant_count = 0
-    pop_ant_count = 0
-    pop_ant_removed = 0
-    i = 0
-    while i < len(actions):
-        a = actions[i]
-        if a[0] == NEW and a[1] == ANT:
-            new_ant_count += 1
-            if new_ant_count > new_ant_limit:
-                del actions[i]
-                i -= 1
-        elif a[0] == POP and state.board(*a[1]).top_piece.type == ANT:
-            pop_ant_count += 1
-            old_h = heuristic(state, player.num)
-            new_h = heuristic(state.apply(a), player.num)
+        result = 0.0
+        result += a * (n_onboard_pieces(state, own_player) - n_onboard_pieces(state, enemy_player))
+        result += b * (n_pinned_pieces(state, enemy_player) - n_pinned_pieces(state, own_player))
+        result += c * (float(is_queen_movable(state, own_player)) - float(is_queen_movable(state, enemy_player)))
+        result += d * (n_accepting_edges(state, own_player) - n_accepting_edges(state, enemy_player))
+        result += e * (n_free_ants(state, own_player) - n_free_ants(state, enemy_player))
 
-            if new_h - old_h < 1.5:
-                pop_ant_removed += 1
-                del actions[i]
-                i -= 1
-        i += 1
+        def qss(ec, enc):  # queen safety score
+            return ec + f * enc
 
-    rc = old_len - len(actions)
-    if rc > 0:
-        print(f'\treduction count: {rc}. pop ant stats: {pop_ant_removed}/{pop_ant_count}')
+        result += g * (
+                qss(*queen_neighbors_crawlability(state, own_player)) - qss(
+            *queen_neighbors_crawlability(state, enemy_player))
+        )
+        return result
 
+    def reduce_actions(self, state, actions, player):
+        old_len = len(actions)
+        new_ant_limit = 3
+        new_ant_count = 0
+        pop_ant_count = 0
+        pop_ant_removed = 0
+        i = 0
+        while i < len(actions):
+            a = actions[i]
+            if a[0] == NEW and a[1] == ANT:
+                new_ant_count += 1
+                if new_ant_count > new_ant_limit:
+                    del actions[i]
+                    i -= 1
+            elif a[0] == POP and state.board(*a[1]).top_piece.type == ANT:
+                pop_ant_count += 1
+                old_h = self.heuristic(state, player.num)
+                new_h = self.heuristic(state.apply(a, add_to_children=False), player.num)
 
-def heuristic(state, player_num, coefficients=None):
-    status = game_controller.game_status(state)
+                if new_h - old_h < 1.5:
+                    pop_ant_removed += 1
+                    del actions[i]
+                    i -= 1
+            i += 1
 
-    if status == DRAW:
-        return 0.0
-
-    if status != ONGOING:
-        win = (player_num == 1 and status == PLAYER1_WIN) or (player_num == 2 and status == PLAYER2_WIN)
-        return math.inf if win else -math.inf
-
-    if coefficients is None:
-        coefficients = (1, 2, 3, 1, 3, 2, 3)  # all positive
-
-    a, b, c, d, e, f, g = coefficients
-
-    own_player, enemy_player = (state.p1, state.p2) if player_num == 1 else (state.p2, state.p1)
-
-    result = 0.0
-    result += a * (n_onboard_pieces(state, own_player) - n_onboard_pieces(state, enemy_player))
-    result += b * (n_pinned_pieces(state, enemy_player) - n_pinned_pieces(state, own_player))
-    result += c * (float(is_queen_movable(state, own_player)) - float(is_queen_movable(state, enemy_player)))
-    result += d * (n_accepting_edges(state, own_player) - n_accepting_edges(state, enemy_player))
-    result += e * (n_free_ants(state, own_player) - n_free_ants(state, enemy_player))
-
-    def qss(ec, enc):  # queen safety score
-        return ec + f * enc
-
-    result += g * (
-            qss(*queen_neighbors_crawlability(state, own_player)) - qss(
-        *queen_neighbors_crawlability(state, enemy_player))
-    )
-    return result
+        rc = old_len - len(actions)
+        if rc > 0:
+            print(f'\treduction count: {rc}. pop ant stats: {pop_ant_removed}/{pop_ant_count}')
 
 
 def count(predicate, iterable):
