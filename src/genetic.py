@@ -18,15 +18,18 @@ class Logger:
         md.close()
 
     def log(self, h1, h2, state, winner):
+        def rounder(x):
+            return round(x, 2)
+
         self.file.write(f'game {self.offset}\n')
         self.file.write('AI1 parameters: ')
-        self.file.write(str.join(', ', map(str, h1)))
+        self.file.write(str.join(', ', map(str, map(rounder, h1))))
         self.file.write('\n')
         self.file.write('AI2 parameters: ')
-        self.file.write(str.join(', ', map(str, h2)))
+        self.file.write(str.join(', ', map(str, map(rounder, h2))))
         self.file.write('\n')
         self.file.write('winner: ')
-        self.file.write(str.join(', ', map(str, winner)))
+        self.file.write(str.join(', ', map(str, map(rounder, winner))))
         self.file.write('\n')
         self.file.write('\n')
         self.file.write(str(state))
@@ -57,13 +60,16 @@ def start_match(h1, h2, max_turn=80):  # returns winner
     agent_h2 = AlphaBetaAgent(h2)
     status = game_status(main_state)
 
-    print(f'starting a match between {h1} and {h2}\n')
+    print(f'starting a match between {h1} and {h2}')
     while status == ONGOING and main_state.turn <= max_turn:
         player = main_state.current_player()
         current_agent = agent_h1 if player.num == 1 else agent_h2
         action = current_agent.run(main_state, player)
         main_state.apply(action, add_to_children=False, clone=False)
         main_state.previous_action = action
+
+        if main_state.turn % 10 == 0:
+            print(main_state.turn, end='-')
 
         status = game_status(main_state)
 
@@ -75,7 +81,8 @@ def start_match(h1, h2, max_turn=80):  # returns winner
         winner = h1 if h1_was_better(main_state) else h2
 
     LOGGER.log(h1, h2, main_state, winner)
-    print(f'match took {round(s - time.time(), 1)}s with {status}')
+    print()
+    print(f'match took {round(time.time() - s, 1)}s with {status}\n')
     return winner
 
 
@@ -93,7 +100,7 @@ def start_tournament(individuals):  # returns winner
 
         for i in range(winner_count):
             h1 = individuals[i]
-            h2 = individuals[i+winner_count]
+            h2 = individuals[i + winner_count]
             winners.append(start_match(h1, h2))
 
         individuals = winners
