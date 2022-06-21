@@ -4,14 +4,43 @@ import time
 
 
 class Logger:
-    def __init__(self, file_address, mode='w'):
-        self.file = open(file_address, mode)
+    def __init__(self, file_address, metadata_address):
+        self.file_address = file_address
+        self.metadata_address = metadata_address
 
-    def log(self, h1, h2, state):
-        pass
+        self.file = open(file_address, 'a')
+        md = open(metadata_address, 'r')
+        self.offset = int(md.readline())
+        md.close()
+
+    def log(self, h1, h2, state, winner):
+        self.file.write(f'game {self.offset}\n')
+        self.file.write('AI1 parameters: ')
+        self.file.write(str.join(', ', map(str, h1)))
+        self.file.write('\n')
+        self.file.write('AI2 parameters: ')
+        self.file.write(str.join(', ', map(str, h2)))
+        self.file.write('\n')
+        self.file.write('winner: ')
+        self.file.write(str.join(', ', map(str, winner)))
+        self.file.write('\n')
+        self.file.write('\n')
+        self.file.write(str(state))
+        self.file.write('\n')
+        self.file.write('\n')
+
+        self.file.flush()
+        self.offset += 1
+
+    def flush(self):
+        self.file.close()
+        md = open(self.metadata_address, 'w')
+        md.write(str(self.offset))
+        md.write('\n')
+        md.close()
 
 
-def start_match(h1, h2, max_moves):  # returns winner
+def start_match(h1, h2, max_moves=80):  # returns winner
     return h1
 
 
@@ -31,7 +60,7 @@ def start_tournament(individuals):  # returns winner
     return individuals[0]
 
 
-LOGGER = Logger('logs.txt')
+LOGGER = Logger('logs.txt', 'metadata.txt')
 
 
 def crossover_and_mutate(h1, h2):
@@ -91,13 +120,17 @@ def next_generation(population):  # returns next generation
 
 def save_pop_to_file(pop, file):
     for ind in pop:
-        file.write(str.join(' ', map(str, ind)) + '\n')
+        file.write(str.join(' ', map(str, ind)))
+        file.write('\n')
+    file.close()
 
 
 def get_pop_from_file(file):
-    return list(
+    r = list(
         map(lambda x: tuple(map(float, str.split(x, ' '))), file.readlines())
     )
+    file.close()
+    return r
 
 
 def run():
@@ -107,7 +140,7 @@ def run():
         population = create_initial_population(32, 7, 12)
 
     max_iterations = 10
-    max_iterations_after_convergence = 10
+    max_iterations_after_convergence = 3
     last_std = -1
     i = 0
 
@@ -131,5 +164,5 @@ def run():
         last_std = current_std
         print()
 
-
+    LOGGER.flush()
 
