@@ -230,6 +230,6 @@ def legal_actions_of(state, player):
                 ant_n += ondeck_piece_type == ANT
                 new_p += 1
 
-    if len(result) > 0:
-        print(f'LA: {len(result)}, ant: {round(ant_n / len(result), 1)}, new: {round(new_p / len(result), 1)}')
+    # if len(result) > 0:
+    #     print(f'LA: {len(result)}, ant: {round(ant_n / len(result), 1)}, new: {round(new_p / len(result), 1)}')
     return result

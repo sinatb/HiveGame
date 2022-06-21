@@ -1,10 +1,10 @@
 import movement
 import random
-from state import from_game_state
-import game_controller
+import game_state
 from constants import *
 import math
 import time
+from state import from_game_state
 
 
 def random_agent(gs, player):
@@ -17,28 +17,26 @@ class AlphaBetaAgent:
     def __init__(self, coefficients):
         self.coefficients = coefficients
         self.root = None
-        self.previous_action = None
 
     def run(self, gs, player):
-        print('AI turn:')
+        # print('AI turn:')
         s = time.time()
 
-        if self.root is None or gs.previous_action not in self.root.children:
+        if self.root is None or gs.previous_action is None or gs.previous_action not in self.root.children:
             new_root = from_game_state(gs)
         else:
-            print('reusing tree')
+            # print('reusing tree')
             new_root = self.root.children[gs.previous_action]
 
         val, action = self.alpha_beta(new_root, 2, -math.inf, math.inf, player.num, return_action=True)
-        print(f'found move in {round(time.time() - s, 1)}s')
-        print()
+        # print(f'found move in {round(time.time() - s, 1)}s')
+        # print()
 
-        self.root = new_root.children[action]
-        self.previous_action = action
+        self.root = new_root.children[action] if action in new_root.children else None
         return action
 
     def alpha_beta(self, node, depth, a, b, max_player_num, return_action=False):
-        if depth == 0 or game_controller.game_status(node) != ONGOING:
+        if depth == 0 or game_state.game_status(node) != ONGOING:
             val = self.heuristic(node, max_player_num)
             return (val, None) if return_action else val
 
@@ -78,7 +76,7 @@ class AlphaBetaAgent:
         return (val, minmax_action) if return_action else val
 
     def heuristic(self, state, player_num):
-        status = game_controller.game_status(state)
+        status = game_state.game_status(state)
 
         if status == DRAW:
             return 0.0
@@ -130,9 +128,9 @@ class AlphaBetaAgent:
 
             i += 1
 
-        rc = old_len - len(actions)
-        if rc > 0:
-            print(f'\t{old_len} -> {len(actions)}')
+        # rc = old_len - len(actions)
+        # if rc > 0:
+        #     print(f'\t{old_len} -> {len(actions)}')
 
 
 def m_distance(a, b):

@@ -1,7 +1,7 @@
 from board import Board
 from hex_place import HexPlace
 from player import Player
-import game_controller
+import game_state
 
 
 class LazyBoard(Board):
@@ -63,7 +63,7 @@ class State:
 
     def apply(self, action, clone=True, add_to_children=True):
         result = self.clone() if clone else self
-        game_controller.apply_action(result, action)
+        game_state.apply_action(result, action)
         # result.leading_actions = self.leading_actions + [action]
 
         if add_to_children:
@@ -81,7 +81,7 @@ class State:
         )
 
     def current_player(self):
-        return game_controller.current_player(self)
+        return game_state.current_player(self)
 
     def print(self):
         print(f'turn: {self.turn}')
@@ -91,6 +91,12 @@ class State:
             print(f'Player {player.num}')
             print(player._pieces)
             print()
+
+    def __str__(self):
+        return str.join('\n', [f'{h.pos}: {list(h.stack())}' for h in self.board.not_empty_places()])
+
+    def __repr__(self):
+        return str(self)
 
 
 def from_game_state(gs):

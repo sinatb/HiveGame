@@ -1,6 +1,10 @@
 import random
 import numpy as np
 import time
+from game_state import game_status
+from constants import *
+from agents import AlphaBetaAgent, n_free_ants
+from state import State
 
 
 class Logger:
@@ -40,8 +44,45 @@ class Logger:
         md.close()
 
 
-def start_match(h1, h2, max_moves=80):  # returns winner
-    return h1
+LOGGER = Logger('./logs.txt', './metadata.txt')
+
+
+def start_match(h1, h2, max_turn=80):  # returns winner
+    s = time.time()
+
+    main_state = State(22, 22, iter([]), 1, (10, 11), (11, 12))
+    main_state.previous_action = None
+
+    agent_h1 = AlphaBetaAgent(h1)
+    agent_h2 = AlphaBetaAgent(h2)
+    status = game_status(main_state)
+
+    print(f'starting a match between {h1} and {h2}\n')
+    while status == ONGOING and main_state.turn <= max_turn:
+        player = main_state.current_player()
+        current_agent = agent_h1 if player.num == 1 else agent_h2
+        action = current_agent.run(main_state, player)
+        main_state.apply(action, add_to_children=False, clone=False)
+        main_state.previous_action = action
+
+        status = game_status(main_state)
+
+    if status == PLAYER1_WIN:
+        winner = h1
+    elif status == PLAYER2_WIN:
+        winner = h2
+    else:
+        winner = h1 if h1_was_better(main_state) else h2
+
+    LOGGER.log(h1, h2, main_state, winner)
+    print(f'match took {round(s - time.time(), 1)}s with {status}')
+    return winner
+
+
+def h1_was_better(state):
+    s1 = n_free_ants(state, state.p1) + len(list(state.board.get_empty_neighbors(state.board(*state.p1.queen.pos))))
+    s2 = n_free_ants(state, state.p2) + len(list(state.board.get_empty_neighbors(state.board(*state.p2.queen.pos))))
+    return s1 > s2
 
 
 def start_tournament(individuals):  # returns winner
@@ -58,9 +99,6 @@ def start_tournament(individuals):  # returns winner
         individuals = winners
 
     return individuals[0]
-
-
-LOGGER = Logger('logs.txt', 'metadata.txt')
 
 
 def crossover_and_mutate(h1, h2):
@@ -139,7 +177,7 @@ def run():
     if len(population) == 0:
         population = create_initial_population(32, 7, 12)
 
-    max_iterations = 10
+    max_iterations = 5
     max_iterations_after_convergence = 3
     last_std = -1
     i = 0
@@ -166,3 +204,6 @@ def run():
 
     LOGGER.flush()
 
+
+if __name__ == '__main__':
+    run()

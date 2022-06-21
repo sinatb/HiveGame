@@ -1,5 +1,5 @@
 import gui
-from src.game_controller import GameState
+from game_state import GameState
 import concurrent.futures
 
 
