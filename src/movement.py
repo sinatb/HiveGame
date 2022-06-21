@@ -200,6 +200,7 @@ def legal_actions_of(state, player):
     result = []
 
     ant_n = 0
+    new_p = 0
     some_point_inside = None
     for onboard_piece in player.onboard_pieces():
         some_point_inside = onboard_piece.pos
@@ -227,6 +228,8 @@ def legal_actions_of(state, player):
             if 1 <= state.turn <= 2 or can_accept_new_piece(state.board, edge_place, player.num):
                 result.append((NEW, ondeck_piece_type, edge_place.pos))
                 ant_n += ondeck_piece_type == ANT
+                new_p += 1
 
-    print(f'Legal actions: {len(result)}, ant percentage: {round(ant_n / len(result), 3)}')
+    if len(result) > 0:
+        print(f'LA: {len(result)}, ant: {round(ant_n / len(result), 1)}, new: {round(new_p / len(result), 1)}')
     return result

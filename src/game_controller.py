@@ -19,8 +19,10 @@ class GameState:
         self.board = Board(22, 22)
         self.p1 = Player(1)
         self.p2 = Player(2)
-        self.run_agent = agents.alpha_beta_agent
+        self.agent = agents.AlphaBetaAgent(DEFAULT_COEFFICIENTS)
+        self.run_agent = self.agent.run
         self.agent_future = None
+        self.previous_action = None
 
     def P1_FIRST_PLACE(self):
         return self.board(10, 11)
@@ -114,6 +116,8 @@ def handle_event(gs, event):
             gs.turn += 1
             gs.debugger_text = 'Turn changed'
             check_for_ai_turn(gs)
+            gs.previous_action = PASS_ACTION
+            print(f'User played {gs.previous_action}')
 
 
 def handle_board_click(gs, pos):
@@ -127,10 +131,13 @@ def handle_board_click(gs, pos):
 
         if gs.selected_char == NO_PIECE and gs.moved_piece != NO_PIECE:
             if gs.board(i, j) in gs.valid_moves:
+                old_pos = gs.moved_piece.pos
                 gs.board(i, j).top_piece = gs.moved_piece
                 gs.debugger_text = PLACED
                 gs.moved_piece = NO_PIECE
                 gs.valid_moves = list()
+                gs.previous_action = (POP, old_pos, (i, j))
+                print(f'User played {gs.previous_action}')
             else:
                 gs.debugger_text = 'This move is illegal'
         elif gs.selected_char != NO_PIECE and gs.moved_piece == NO_PIECE:
@@ -144,6 +151,8 @@ def handle_board_click(gs, pos):
                 gs.debugger_text = 'A new piece cannot be placed here'
             else:
                 gs.board(i, j).top_piece = current_player(gs).get_free_piece(gs.selected_char)
+                gs.previous_action = (NEW, gs.selected_char, (i, j))
+                print(f'User played {gs.previous_action}')
                 gs.debugger_text = PLACED
                 gs.selected_char = NO_PIECE
                 if gs.turn <= 2:

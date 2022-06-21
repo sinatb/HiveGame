@@ -22,9 +22,19 @@ class AlphaBetaAgent:
     def run(self, gs, player):
         print('AI turn:')
         s = time.time()
-        val, action = self.alpha_beta(from_game_state(gs), 4, -math.inf, math.inf, player.num, return_action=True)
+
+        if self.root is None or gs.previous_action not in self.root.children:
+            new_root = from_game_state(gs)
+        else:
+            print('reusing tree')
+            new_root = self.root.children[gs.previous_action]
+
+        val, action = self.alpha_beta(new_root, 2, -math.inf, math.inf, player.num, return_action=True)
         print(f'found move in {round(time.time() - s, 1)}s')
         print()
+
+        self.root = new_root.children[action]
+        self.previous_action = action
         return action
 
     def alpha_beta(self, node, depth, a, b, max_player_num, return_action=False):
@@ -99,32 +109,34 @@ class AlphaBetaAgent:
 
     def reduce_actions(self, state, actions, player):
         old_len = len(actions)
-        new_ant_limit = 3
-        new_ant_count = 0
-        pop_ant_count = 0
-        pop_ant_removed = 0
+
+        new_limit = 3
+        new_actions_piece_type = dict()
         i = 0
         while i < len(actions):
             a = actions[i]
-            if a[0] == NEW and a[1] == ANT:
-                new_ant_count += 1
-                if new_ant_count > new_ant_limit:
-                    del actions[i]
-                    i -= 1
-            elif a[0] == POP and state.board(*a[1]).top_piece.type == ANT:
-                pop_ant_count += 1
-                old_h = self.heuristic(state, player.num)
-                new_h = self.heuristic(state.apply(a, add_to_children=False), player.num)
+            if a[0] == NEW:
+                if a[1] in new_actions_piece_type:
+                    add = new_actions_piece_type[a[1]] < new_limit
+                    new_actions_piece_type[a[1]] += add
+                    if not add:
+                        del actions[i]
+                        i -= 1
+                else:
+                    new_actions_piece_type[a[1]] = 1
+            elif a[0] == POP and state.board(*a[1]).top_piece.type == ANT and m_distance(a[1], a[2]) < max(4, old_len // 12):
+                del actions[i]
+                i -= 1
 
-                if new_h - old_h < 1.5:
-                    pop_ant_removed += 1
-                    del actions[i]
-                    i -= 1
             i += 1
 
         rc = old_len - len(actions)
         if rc > 0:
-            print(f'\treduction count: {rc}. pop ant stats: {pop_ant_removed}/{pop_ant_count}')
+            print(f'\t{old_len} -> {len(actions)}')
+
+
+def m_distance(a, b):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 
 def count(predicate, iterable):
